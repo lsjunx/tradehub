@@ -1,0 +1,10 @@
+﻿**/data/
+certs/*.key
+certs/*.crt
+certs/*.pem
+certs/*.srl
+!certs/generate.ps1
+!certs/generate.sh
+**/internal/pb/
+*.exe
+.superpowers/
