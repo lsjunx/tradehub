@@ -58,9 +58,10 @@
 
     async function loadSnapshot() {
       const r = await fetch('/api/devices');
-      const list = await r.json();
+      const body = await r.json();
+      const list = (body && body.data) || [];
       deviceMap.clear();
-      (list || []).forEach(d => deviceMap.set(d.device_id, d));
+      list.forEach(d => deviceMap.set(d.device_id, d));
       render();
     }
 
@@ -74,11 +75,11 @@
       };
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
-        if (msg.type === 'device_updated') upsertDevice(msg.payload);
+        if (msg.type === 'device_updated') upsertDevice(msg.data);
         if (msg.type === 'command_result') {
-          const p = msg.payload || {};
+          const p = msg.data || {};
           if (p.cmd_id) pendingCmds.delete(p.cmd_id);
-          result.textContent = JSON.stringify(p, null, 2);
+          result.textContent = JSON.stringify(msg, null, 2);
         }
       };
       ws.onclose = () => {
@@ -103,20 +104,19 @@
         body: JSON.stringify({action: 'echo', args})
       });
       const body = await r.json();
-      if (r.status === 202 && body.cmd_id) {
-        pendingCmds.add(body.cmd_id);
+      if (body.code === 0 && body.data && body.data.cmd_id) {
+        const cmdId = body.data.cmd_id;
+        pendingCmds.add(cmdId);
         result.textContent = 'accepted, waiting WS result…\n' + JSON.stringify(body, null, 2);
-        // 兜底：若 WS 丢了，轮询指令状态
-        const cmdId = body.cmd_id;
         const timer = setInterval(async () => {
           if (!pendingCmds.has(cmdId)) { clearInterval(timer); return; }
           const cr = await fetch('/api/commands/' + encodeURIComponent(cmdId));
-          if (!cr.ok) return;
-          const rec = await cr.json();
-          if (rec.status && rec.status !== 'accepted') {
+          const cb = await cr.json();
+          if (cb.code !== 0 || !cb.data) return;
+          if (cb.data.status && cb.data.status !== 'accepted') {
             pendingCmds.delete(cmdId);
             clearInterval(timer);
-            result.textContent = JSON.stringify(rec, null, 2);
+            result.textContent = JSON.stringify(cb, null, 2);
           }
         }, 1000);
         setTimeout(() => clearInterval(timer), 15000);

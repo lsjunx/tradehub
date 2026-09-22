@@ -4,8 +4,19 @@ package cloud.v1;
 
 option go_package = "github.com/local/saas-service/internal/pb/cloud/v1;cloudv1";
 
-// WSS JSON 信封：{"type":"...","payload":{...}}
-// type：gateway_hello, device_register, device_heartbeat, device_offline, command, command_result
+// MsgType 表示 WSS JSON 信封中的 type 字段语义。
+// 线网字符串由生成代码的 MsgType_name 推导：去掉 MSG_TYPE_ 前缀再转小写
+//（如 MSG_TYPE_GATEWAY_HELLO → gateway_hello）。见各服务 TypeName/ParseType。
+// 信封格式：{"type":"<wire string>","payload":{...}}
+enum MsgType {
+  MSG_TYPE_UNSPECIFIED = 0;
+  MSG_TYPE_GATEWAY_HELLO = 1;
+  MSG_TYPE_DEVICE_REGISTER = 2;
+  MSG_TYPE_DEVICE_HEARTBEAT = 3;
+  MSG_TYPE_DEVICE_OFFLINE = 4;
+  MSG_TYPE_COMMAND = 5;           // SaaS → Gateway
+  MSG_TYPE_COMMAND_RESULT = 6;    // Gateway → SaaS
+}
 
 message GatewayHello {
   string gateway_id = 1;

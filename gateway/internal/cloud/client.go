@@ -1,4 +1,4 @@
-package cloudclient
+package cloud
 
 import (
 	"context"
@@ -13,17 +13,21 @@ import (
 	"github.com/coder/websocket"
 )
 
-// Client 维持到 saas 的 WSS，并转发上下行消息。
+// CommandHandler 云端下发指令时的回调（由 logic 层注入）。
+type CommandHandler func(deviceID, cmdID, action, args string)
+
+// Client 主动连接 SaaS /ws/gateway，上报设备事件并接收 command。
 type Client struct {
 	URL                string
 	GatewayID          string
 	InsecureSkipVerify bool
-	OnCommand          func(deviceID, cmdID, action, args string)
+	OnCommand          CommandHandler
 
 	mu   sync.Mutex
 	conn *websocket.Conn
 }
 
+// Connect 拨号 WSS，并发送 gateway_hello。
 func (c *Client) Connect(ctx context.Context) error {
 	tlsCfg := &tls.Config{
 		InsecureSkipVerify: c.InsecureSkipVerify,
@@ -49,10 +53,11 @@ func (c *Client) Connect(ctx context.Context) error {
 	if err := c.write(ctx, hello); err != nil {
 		return err
 	}
-	log.Printf("cloud connected, gateway_id=%s", c.GatewayID)
+	log.Printf("已连接 SaaS，gateway_id=%s", c.GatewayID)
 	return nil
 }
 
+// RunRead 【关键】从 SaaS 读下行消息；当前仅处理 type=command。
 func (c *Client) RunRead(ctx context.Context) error {
 	for {
 		c.mu.Lock()
@@ -67,9 +72,10 @@ func (c *Client) RunRead(ctx context.Context) error {
 		}
 		env, err := UnmarshalEnvelope(data)
 		if err != nil {
-			log.Printf("bad cloud msg: %v", err)
+			log.Printf("云端消息解析失败: %v", err)
 			continue
 		}
+		// 云端下发指令入口
 		if env.Type == TypeCommand && c.OnCommand != nil {
 			var p struct {
 				DeviceID string `json:"device_id"`
@@ -85,6 +91,7 @@ func (c *Client) RunRead(ctx context.Context) error {
 	}
 }
 
+// Send 向 SaaS 上报一条上行事件（register / heartbeat / offline / command_result）。
 func (c *Client) Send(typ string, payload any) error {
 	raw, err := MarshalEnvelope(typ, payload)
 	if err != nil {

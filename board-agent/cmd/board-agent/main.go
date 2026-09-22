@@ -1,10 +1,18 @@
+// Board-Agent：板端代理，连接本地 Gateway。
+//
+// 分层：
+//
+//	handle  → TLS 连接 Gateway、收发帧
+//	logic   → 指令执行（echo 等）
+//	frame   → 二进制帧编解码
+//	identity / netinfo / config
 package main
 
 import (
 	"log"
 
-	"github.com/local/board-agent/internal/agent"
 	"github.com/local/board-agent/internal/config"
+	"github.com/local/board-agent/internal/handle"
 )
 
 func main() {
@@ -14,7 +22,7 @@ func main() {
 	}
 	config.WarnIfInsecure(cfg.InsecureSkipVerify)
 
-	a, err := agent.New(cfg)
+	a, err := handle.NewAgent(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

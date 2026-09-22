@@ -21,11 +21,13 @@ protoc --proto_path=proto \
   --go_out=gateway --go_opt=module=github.com/local/gateway \
   --go_opt=Mcloud/v1/messages.proto=github.com/local/gateway/internal/pb/cloud/v1 \
   cloud/v1/messages.proto
+rm -f gateway/internal/pb/cloud/v1/wire_types.go
 
 mkdir -p saas-service/internal/pb/cloud/v1
 protoc --proto_path=proto \
   --go_out=saas-service --go_opt=module=github.com/local/saas-service \
   --go_opt=Mcloud/v1/messages.proto=github.com/local/saas-service/internal/pb/cloud/v1 \
   cloud/v1/messages.proto
+rm -f saas-service/internal/pb/cloud/v1/wire_types.go
 
 echo "proto generation complete"

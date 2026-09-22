@@ -4,13 +4,13 @@ import "flag"
 
 // Config gateway 启动配置。
 type Config struct {
-	SaasURL            string
-	Listen             string
+	SaasURL            string // SaaS WSS 地址，如 wss://host:8443/ws/gateway
+	Listen             string // Board TLS 监听，默认 :9443
 	CertFile           string
 	KeyFile            string
-	DataDir            string
-	Mode               string
-	InsecureSkipVerify bool
+	DataDir            string // gateway_id 持久化目录
+	Mode               string // development | production
+	InsecureSkipVerify bool   // 仅 development 允许 true
 }
 
 func ParseFlags() Config {

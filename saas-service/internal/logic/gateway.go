@@ -5,11 +5,15 @@ import (
 	"log"
 	"time"
 
+	cloudv1 "github.com/local/saas-service/internal/pb/cloud/v1"
+
+	"github.com/local/saas-service/internal/common/cloudwire"
+	"github.com/local/saas-service/internal/common/uievent"
 	"github.com/local/saas-service/internal/gatewayhub"
 	"github.com/local/saas-service/internal/store"
 )
 
-// GatewayLogic 处理 Gateway 上行消息。
+// GatewayLogic 处理 Gateway → SaaS 的上行 WSS 消息。
 type GatewayLogic struct {
 	Store *store.Store
 	Hub   *gatewayhub.Hub
@@ -24,10 +28,11 @@ func NewGatewayLogic(st *store.Store, hub *gatewayhub.Hub, ui *UIHub) *GatewayLo
 	return l
 }
 
-// HandleMessage 解析并处理一条 Gateway WSS 消息。
+// HandleMessage 【关键】按 proto/cloud MsgType 线网字符串分发 Gateway 上行消息。
+// 返回 (gatewayID, true) 仅当 gateway_hello，供 handle 绑定连接。
 func (l *GatewayLogic) HandleMessage(typ string, payload json.RawMessage) (gatewayID string, setGateway bool) {
-	switch typ {
-	case "gateway_hello":
+	switch cloudwire.ParseType(typ) {
+	case cloudv1.MsgType_MSG_TYPE_GATEWAY_HELLO:
 		var p struct {
 			GatewayID string `json:"gateway_id"`
 		}
@@ -35,7 +40,7 @@ func (l *GatewayLogic) HandleMessage(typ string, payload json.RawMessage) (gatew
 		log.Printf("gateway hello %s", p.GatewayID)
 		return p.GatewayID, true
 
-	case "device_register":
+	case cloudv1.MsgType_MSG_TYPE_DEVICE_REGISTER:
 		var p struct {
 			DeviceID  string `json:"device_id"`
 			IP        string `json:"ip"`
@@ -44,10 +49,9 @@ func (l *GatewayLogic) HandleMessage(typ string, payload json.RawMessage) (gatew
 		}
 		_ = json.Unmarshal(payload, &p)
 		d := l.Store.UpsertRegister(p.DeviceID, p.IP, p.Port, p.GatewayID)
-		// 注册立即推送
-		l.UI.BroadcastDevice(p.DeviceID, "device_updated", d, 0)
+		l.UI.BroadcastDevice(p.DeviceID, uievent.DeviceUpdated, d, 0)
 
-	case "device_heartbeat":
+	case cloudv1.MsgType_MSG_TYPE_DEVICE_HEARTBEAT:
 		var p struct {
 			DeviceID  string `json:"device_id"`
 			Status    string `json:"status"`
@@ -55,23 +59,25 @@ func (l *GatewayLogic) HandleMessage(typ string, payload json.RawMessage) (gatew
 		}
 		_ = json.Unmarshal(payload, &p)
 		d := l.Store.TouchHeartbeat(p.DeviceID, p.Status, p.GatewayID)
-		// 心跳 UI 最多每 5s 推一次，避免刷爆浏览器连接
-		l.UI.BroadcastDevice(p.DeviceID, "device_updated", d, 5*time.Second)
+		l.UI.BroadcastDevice(p.DeviceID, uievent.DeviceUpdated, d, 5*time.Second)
 
-	case "device_offline":
+	case cloudv1.MsgType_MSG_TYPE_DEVICE_OFFLINE:
 		var p struct {
 			DeviceID  string `json:"device_id"`
 			GatewayID string `json:"gateway_id"`
 		}
 		_ = json.Unmarshal(payload, &p)
 		if d := l.Store.MarkOffline(p.DeviceID, p.GatewayID); d != nil {
-			l.UI.BroadcastDevice(p.DeviceID, "device_updated", d, 0)
+			l.UI.BroadcastDevice(p.DeviceID, uievent.DeviceUpdated, d, 0)
 		}
 
-	case "command_result":
+	case cloudv1.MsgType_MSG_TYPE_COMMAND_RESULT:
 		var p gatewayhub.CommandResult
 		_ = json.Unmarshal(payload, &p)
 		l.Hub.Complete(p)
+
+	default:
+		log.Printf("未知 Gateway 消息 type=%q", typ)
 	}
 	return "", false
 }

@@ -1,3 +1,4 @@
+// Package frame 实现 Board↔Gateway 的 length-prefix 二进制帧（4 字节大端长度 + protobuf）。
 package frame
 
 import (

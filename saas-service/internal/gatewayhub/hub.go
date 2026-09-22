@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+
+	"github.com/local/saas-service/internal/common/uievent"
 )
 
 // Hub 管理 Gateway WSS 与待完成指令。
@@ -99,7 +101,7 @@ func (h *Hub) Complete(res CommandResult) {
 		close(ch)
 	}
 	if h.OnEvent != nil {
-		h.OnEvent("command_result", res)
+		h.OnEvent(uievent.CommandResult, res)
 	}
 }
 

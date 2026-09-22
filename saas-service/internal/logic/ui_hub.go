@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+
+	"github.com/local/saas-service/internal/common/response"
 )
 
 // UIHub 向浏览器 /ws/ui 推送事件。
@@ -45,7 +47,7 @@ func (u *UIHub) BroadcastDevice(deviceID, eventType string, payload any, minInte
 }
 
 func (u *UIHub) broadcastLocked(eventType string, payload any, deviceID string, minInterval time.Duration) {
-	msg, err := json.Marshal(map[string]any{"type": eventType, "payload": payload})
+	msg, err := json.Marshal(response.NewWSEvent(eventType, payload))
 	if err != nil {
 		return
 	}

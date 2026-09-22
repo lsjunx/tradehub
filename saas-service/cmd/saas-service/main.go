@@ -1,9 +1,20 @@
+// SaaS：云端控制面（HTTPS REST + WSS）。
+//
+// 分层：
+//
+//	router       → Gin 路由注册
+//	handle       → HTTP/WS 入口
+//	logic        → 设备/指令/Gateway 上行业务
+//	gatewayhub   → Gateway 连接与指令等待
+//	store        → 设备与指令内存表
+//	common/response · errors · uievent → 公共包体与事件名
 package main
 
 import (
 	"log"
 	"time"
 
+	"github.com/local/saas-service/internal/common/uievent"
 	"github.com/local/saas-service/internal/config"
 	"github.com/local/saas-service/internal/gatewayhub"
 	"github.com/local/saas-service/internal/logic"
@@ -23,12 +34,13 @@ func main() {
 	ui := logic.NewUIHub()
 	engine := router.NewEngine(router.Deps{Store: st, Commands: cmds, Hub: hub, UI: ui})
 
+	// 心跳超时扫描：直接改 store 并推 UI（不经 Gateway）
 	go func() {
 		t := time.NewTicker(10 * time.Second)
 		defer t.Stop()
 		for range t.C {
 			for _, d := range st.MarkStaleOffline(30 * time.Second) {
-				ui.Broadcast("device_updated", d)
+				ui.Broadcast(uievent.DeviceUpdated, d)
 			}
 		}
 	}()

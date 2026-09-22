@@ -1,11 +1,11 @@
-package boardsession
+package session
 
 import "testing"
 
 func TestRemoveIfSame_IgnoresStaleDisconnect(t *testing.T) {
 	r := NewRegistry()
-	old := &BoardConnection{DeviceID: "d1", SessionID: "A", Conn: nil}
-	neu := &BoardConnection{DeviceID: "d1", SessionID: "B", Conn: nil}
+	old := &BoardConn{DeviceID: "d1", SessionID: "A", Conn: nil}
+	neu := &BoardConn{DeviceID: "d1", SessionID: "B", Conn: nil}
 	r.Put(old)
 	r.Put(neu)
 	if r.RemoveIfSame("d1", "A") {

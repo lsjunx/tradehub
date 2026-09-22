@@ -1,3 +1,4 @@
+// Package identity 持久化 gateway_id / device_id（无则生成 UUID）。
 package identity
 
 import (

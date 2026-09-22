@@ -1,4 +1,4 @@
-package agent
+package logic
 
 import (
 	"testing"

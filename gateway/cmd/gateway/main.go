@@ -1,3 +1,12 @@
+// Gateway：本地边车，透传 Board↔SaaS。
+//
+// 分层：
+//
+//	handle  → Board TLS 接入与读帧
+//	logic   → 上行/下行转发业务
+//	cloud   → SaaS WSS 客户端
+//	session → Board 会话表
+//	frame   → Board 二进制帧编解码
 package main
 
 import (
@@ -6,11 +15,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/local/gateway/internal/boardserver"
-	"github.com/local/gateway/internal/boardsession"
-	"github.com/local/gateway/internal/cloudclient"
+	"github.com/local/gateway/internal/cloud"
 	"github.com/local/gateway/internal/config"
+	"github.com/local/gateway/internal/handle"
 	"github.com/local/gateway/internal/identity"
+	"github.com/local/gateway/internal/logic"
+	"github.com/local/gateway/internal/session"
 )
 
 func main() {
@@ -25,49 +35,44 @@ func main() {
 		log.Fatal(err)
 	}
 
-	reg := boardsession.NewRegistry()
-	cloud := &cloudclient.Client{
+	reg := session.NewRegistry()
+	cloudCli := &cloud.Client{
 		URL:                cfg.SaasURL,
 		GatewayID:          gwID,
 		InsecureSkipVerify: cfg.InsecureSkipVerify,
 	}
-	srv := &boardserver.Server{
-		Listen:    cfg.Listen,
-		CertFile:  cfg.CertFile,
-		KeyFile:   cfg.KeyFile,
+	bridge := &logic.Bridge{
 		GatewayID: gwID,
 		Registry:  reg,
-		Cloud:     cloud,
+		Cloud:     cloudCli,
 	}
-	cloud.OnCommand = func(deviceID, cmdID, action, args string) {
-		log.Printf("cloud command device=%s cmd_id=%s action=%s args=%q", deviceID, cmdID, action, args)
-		if err := srv.SendCommand(deviceID, cmdID, action, args); err != nil {
-			log.Printf("forward command to %s: %v", deviceID, err)
-			_ = cloud.Send(cloudclient.TypeCommandResult, map[string]any{
-				"device_id": deviceID,
-				"cmd_id":    cmdID,
-				"ok":        false,
-				"message":   "device unreachable",
-			})
-			return
-		}
-		log.Printf("forwarded command to board %s", deviceID)
+	// 【关键】SaaS 下行 command → logic 转发 Board
+	cloudCli.OnCommand = bridge.HandleCloudCommand
+
+	boardSrv := &handle.BoardServer{
+		Listen:   cfg.Listen,
+		CertFile: cfg.CertFile,
+		KeyFile:  cfg.KeyFile,
+		Bridge:   bridge,
 	}
 
+	// 后台维持与 SaaS 的长连接（断线重连）
 	go func() {
 		for {
 			ctx := context.Background()
-			if err := cloud.Connect(ctx); err != nil {
-				log.Printf("cloud dial: %v", err)
+			if err := cloudCli.Connect(ctx); err != nil {
+				log.Printf("连接 SaaS 失败: %v", err)
 				time.Sleep(2 * time.Second)
 				continue
 			}
-			err := cloud.RunRead(ctx)
-			log.Printf("cloud read ended: %v", err)
-			cloud.Close()
+			// 【关键】阻塞读 SaaS；仅处理 command
+			err := cloudCli.RunRead(ctx)
+			log.Printf("SaaS 读循环结束: %v", err)
+			cloudCli.Close()
 			time.Sleep(2 * time.Second)
 		}
 	}()
 
-	log.Fatal(srv.ListenAndServe())
+	// 【关键】阻塞服务 Board TLS
+	log.Fatal(boardSrv.ListenAndServe())
 }

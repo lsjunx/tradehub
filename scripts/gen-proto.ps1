@@ -34,6 +34,7 @@ protoc `
   --go_opt=module=github.com/local/gateway `
   --go_opt=Mcloud/v1/messages.proto=github.com/local/gateway/internal/pb/cloud/v1 `
   cloud/v1/messages.proto
+Remove-Item -Force -ErrorAction SilentlyContinue "gateway/internal/pb/cloud/v1/wire_types.go"
 
 # saas-service: cloud only
 Ensure-Dir "saas-service/internal/pb/cloud/v1"
@@ -43,6 +44,7 @@ protoc `
   --go_opt=module=github.com/local/saas-service `
   --go_opt=Mcloud/v1/messages.proto=github.com/local/saas-service/internal/pb/cloud/v1 `
   cloud/v1/messages.proto
+Remove-Item -Force -ErrorAction SilentlyContinue "saas-service/internal/pb/cloud/v1/wire_types.go"
 
 Write-Host "proto generation complete"
-Get-ChildItem -Recurse -Filter *.pb.go board-agent,gateway,saas-service | ForEach-Object { $_.FullName }
+Get-ChildItem -Recurse -Filter *.go board-agent/internal/pb,gateway/internal/pb,saas-service/internal/pb | ForEach-Object { $_.FullName }

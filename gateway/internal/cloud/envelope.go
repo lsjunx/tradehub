@@ -1,24 +1,16 @@
-package cloudclient
+// Package cloud 负责 Gateway ↔ SaaS 的 WSS 客户端与 JSON 信封。
+package cloud
 
 import (
 	"encoding/json"
 	"fmt"
 )
 
-// Envelope Gateway↔Cloud WSS JSON 信封。
+// Envelope SaaS↔Gateway 文本帧 JSON 信封。
 type Envelope struct {
 	Type    string          `json:"type"`
 	Payload json.RawMessage `json:"payload"`
 }
-
-const (
-	TypeGatewayHello    = "gateway_hello"
-	TypeDeviceRegister  = "device_register"
-	TypeDeviceHeartbeat = "device_heartbeat"
-	TypeDeviceOffline   = "device_offline"
-	TypeCommand         = "command"
-	TypeCommandResult   = "command_result"
-)
 
 func MarshalEnvelope(typ string, payload any) ([]byte, error) {
 	raw, err := json.Marshal(payload)

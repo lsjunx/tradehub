@@ -1,3 +1,4 @@
+// Package logic SaaS 业务层：设备、异步指令、Gateway 上行、UI 推送。
 package logic
 
 import (
@@ -7,6 +8,9 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/local/saas-service/internal/common/cloudwire"
+	bizerr "github.com/local/saas-service/internal/common/errors"
+	"github.com/local/saas-service/internal/common/uievent"
 	"github.com/local/saas-service/internal/gatewayhub"
 	"github.com/local/saas-service/internal/store"
 )
@@ -31,7 +35,7 @@ func (l *DeviceLogic) ListDevices() []store.Device {
 func (l *DeviceLogic) GetDevice(deviceID string) (*store.Device, error) {
 	dev, ok := l.Store.Get(deviceID)
 	if !ok {
-		return nil, NewAppError(http.StatusNotFound, "device not found")
+		return nil, bizerr.NotFound("device not found")
 	}
 	return dev, nil
 }
@@ -39,7 +43,7 @@ func (l *DeviceLogic) GetDevice(deviceID string) (*store.Device, error) {
 func (l *DeviceLogic) GetCommand(cmdID string) (*store.CommandRecord, error) {
 	rec, ok := l.Commands.Get(cmdID)
 	if !ok {
-		return nil, NewAppError(http.StatusNotFound, "command not found")
+		return nil, bizerr.NotFound("command not found")
 	}
 	return rec, nil
 }
@@ -60,17 +64,17 @@ type CommandAccept struct {
 // AcceptCommand 立即返回 accepted，结果经 /ws/ui 的 command_result 推送，也可查 GET /api/commands/:id。
 func (l *DeviceLogic) AcceptCommand(deviceID string, req CommandRequest) (*CommandAccept, error) {
 	if req.Action == "" {
-		return nil, NewAppError(http.StatusBadRequest, "action required")
+		return nil, bizerr.BadRequest("action required")
 	}
 	dev, ok := l.Store.Get(deviceID)
 	if !ok {
-		return nil, NewAppError(http.StatusNotFound, "device not found")
+		return nil, bizerr.NotFound("device not found")
 	}
 	if !dev.Online {
-		return nil, NewAppError(http.StatusNotFound, "device offline")
+		return nil, bizerr.NotFound("device offline")
 	}
 	if !l.Hub.HasGateway(dev.GatewayID) {
-		return nil, NewAppError(http.StatusConflict, "gateway not connected")
+		return nil, bizerr.New(http.StatusConflict, "gateway not connected")
 	}
 
 	cmdID := uuid.NewString()
@@ -88,7 +92,7 @@ func (l *DeviceLogic) AcceptCommand(deviceID string, req CommandRequest) (*Comma
 		deviceID, cmdID, req.Action, req.Args, dev.GatewayID)
 
 	wait := l.Hub.RegisterPending(cmdID)
-	err := l.Hub.SendJSON(dev.GatewayID, "command", map[string]string{
+	err := l.Hub.SendJSON(dev.GatewayID, cloudwire.TypeCommand, map[string]string{
 		"device_id": deviceID,
 		"cmd_id":    cmdID,
 		"action":    req.Action,
@@ -97,7 +101,7 @@ func (l *DeviceLogic) AcceptCommand(deviceID string, req CommandRequest) (*Comma
 	if err != nil {
 		l.Hub.CancelPending(cmdID)
 		l.Commands.Finish(cmdID, store.CmdFailed, false, err.Error())
-		return nil, WrapConflict(err)
+		return nil, bizerr.Conflict(err)
 	}
 
 	go l.waitCommandResult(cmdID, deviceID, wait)
@@ -115,7 +119,7 @@ func (l *DeviceLogic) waitCommandResult(cmdID, deviceID string, wait <-chan gate
 		if !ok {
 			if finished := l.Commands.FinishIfAccepted(cmdID, store.CmdTimeout, false, "timeout"); finished != nil {
 				log.Printf("command timeout cmd_id=%s device=%s", cmdID, deviceID)
-				l.Hub.Emit("command_result", gatewayhub.CommandResult{
+				l.Hub.Emit(uievent.CommandResult, gatewayhub.CommandResult{
 					DeviceID: deviceID,
 					CmdID:    cmdID,
 					Ok:       false,
@@ -137,7 +141,7 @@ func (l *DeviceLogic) waitCommandResult(cmdID, deviceID string, wait <-chan gate
 		}
 		if finished := l.Commands.FinishIfAccepted(cmdID, store.CmdTimeout, false, "timeout"); finished != nil {
 			log.Printf("command timeout cmd_id=%s device=%s", cmdID, deviceID)
-			l.Hub.Emit("command_result", gatewayhub.CommandResult{
+			l.Hub.Emit(uievent.CommandResult, gatewayhub.CommandResult{
 				DeviceID: deviceID,
 				CmdID:    cmdID,
 				Ok:       false,

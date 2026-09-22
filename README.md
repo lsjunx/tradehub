@@ -45,24 +45,76 @@ curl.exe -k https://127.0.0.1:8443/api/devices
 curl.exe -k -X POST https://127.0.0.1:8443/api/devices/<device_id>/commands -H "Content-Type: application/json" -d "{\"action\":\"echo\",\"args\":\"hello\"}"
 ```
 
+## gateway 分层
+
+```
+cmd/gateway     → 组装依赖、启动 SaaS 读循环 + Board TLS
+handle          → Board TLS Accept / 读帧（I/O 边界）
+logic           → 上行 Board→SaaS、下行 SaaS→Board 转发
+cloud           → SaaS WSS 客户端（收 command、发 register/heartbeat/result）
+session         → Board 会话表（SessionID 防误删）
+frame           → Board 二进制帧编解码
+identity/config → gateway_id 与启动参数
+```
+
+关键入口：
+- 收 Board：`handle.BoardServer.serveConn`
+- 收 SaaS 指令：`cloud.Client.RunRead` → `logic.Bridge.HandleCloudCommand`
+- Gateway **无查询 API**（查询在 SaaS REST）
+
 ## saas-service 分层与前端契约
 
 ```
-router  → 注册 Gin 路由
-handle  → 解析请求 / 写响应（含 WS 升级）
-logic   → 业务规则（设备、异步指令、Gateway 消息）
-store / gatewayhub → 内存存储与连接管理
+cmd/saas-service → 组装启动
+router           → Gin 路由
+handle           → HTTP / WS 入口
+logic            → 设备、异步指令、Gateway 上行
+gatewayhub       → Gateway 连接与指令等待
+store            → 设备 / 指令内存表
+common/response · errors · uievent
+```
+
+Gateway↔SaaS 的 `type` 定义在 `proto/cloud/v1` 的 `MsgType` 枚举；线网字符串由生成代码的
+`MsgType_name`/`MsgType_value` 推导（`MSG_TYPE_GATEWAY_HELLO` → `gateway_hello`），
+业务侧用各服务的 `TypeName`/`ParseType`，勿手写字面量。
+
+## board-agent 分层
+
+```
+cmd/board-agent → 组装启动
+handle          → TLS 连 Gateway、收发帧
+logic           → 指令执行（新增 action 主要改这里）
+frame / identity / netinfo / config
 ```
 
 **REST（真前端）**
 - `GET /api/devices` / `GET /api/devices/:id`
-- `POST /api/devices/:id/commands` → **202** `{cmd_id, device_id, status:"accepted"}`
-- `GET /api/commands/:cmd_id` → 查询指令状态（accepted/succeeded/failed/timeout）
-- 错误体：`{code, message}`
+- `POST /api/devices/:id/commands` → `data: {cmd_id, device_id, status:"accepted"}`
+- `GET /api/commands/:cmd_id` → 查询指令状态
 
-**WS `/ws/ui`**
-- `device_updated`：设备快照增量
-- `command_result`：`{device_id, cmd_id, ok, message}`
+统一返回：
+
+```json
+{ "code": 0, "message": "ok", "data": {}, "timestamp": 1710000000000 }
+```
+
+- 成功：`code = 0`，`message = "ok"`，业务在 `data`
+- 失败：`code` 为业务/HTTP 错误码，`data = null`，`timestamp` 为毫秒时间戳
+
+**WS `/ws/ui`**（与 REST 同结构，多 `type` 字段）
+
+```json
+{
+  "type": "command_result",
+  "code": 0,
+  "message": "ok",
+  "data": { "device_id": "...", "cmd_id": "...", "ok": true, "message": "hello" },
+  "timestamp": 1710000000000
+}
+```
+
+- `device_updated`：`data` 为设备快照
+- `command_result`：`data` 为执行结果
 
 指令为异步：HTTP 只受理，结果靠 WS（或轮询 commands API）。
 

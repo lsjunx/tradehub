@@ -1,4 +1,5 @@
-package agent
+// Package handle 是 Board 的 I/O 边界：连接 Gateway、收发 protobuf 帧。
+package handle
 
 import (
 	"crypto/tls"
@@ -15,18 +16,19 @@ import (
 	"github.com/local/board-agent/internal/config"
 	"github.com/local/board-agent/internal/frame"
 	"github.com/local/board-agent/internal/identity"
+	"github.com/local/board-agent/internal/logic"
 	"github.com/local/board-agent/internal/netinfo"
 	boardv1 "github.com/local/board-agent/internal/pb/board/v1"
 )
 
-// Agent 板端主循环：注册、心跳、收指令。
+// Agent 板端连接与会话循环。
 type Agent struct {
 	Cfg      config.Config
 	DeviceID string
 	IP       string
 }
 
-func New(cfg config.Config) (*Agent, error) {
+func NewAgent(cfg config.Config) (*Agent, error) {
 	idPath := filepath.Join(cfg.DataDir, "device_id")
 	id, err := identity.LoadOrCreate(idPath)
 	if err != nil {
@@ -39,8 +41,8 @@ func New(cfg config.Config) (*Agent, error) {
 func (a *Agent) Run() error {
 	backoff := time.Second
 	for {
-		err := a.session()
-		log.Printf("session ended: %v; reconnect in %s", err, backoff)
+		err := a.serveSession()
+		log.Printf("会话结束: %v；%s 后重连", err, backoff)
 		time.Sleep(backoff)
 		if backoff < 30*time.Second {
 			backoff *= 2
@@ -48,7 +50,8 @@ func (a *Agent) Run() error {
 	}
 }
 
-func (a *Agent) session() error {
+// serveSession 【关键】单次 TLS 会话：注册 → 心跳 + 收指令。
+func (a *Agent) serveSession() error {
 	tlsCfg := &tls.Config{
 		InsecureSkipVerify: a.Cfg.InsecureSkipVerify,
 		MinVersion:         tls.VersionTLS12,
@@ -58,7 +61,7 @@ func (a *Agent) session() error {
 		return err
 	}
 	defer conn.Close()
-	log.Printf("connected to gateway %s as %s", a.Cfg.GatewayAddr, a.DeviceID)
+	log.Printf("已连接 Gateway %s，device_id=%s", a.Cfg.GatewayAddr, a.DeviceID)
 
 	var writeMu sync.Mutex
 	send := func(env *boardv1.Envelope) error {
@@ -67,6 +70,7 @@ func (a *Agent) session() error {
 		return writeEnvelope(conn, env)
 	}
 
+	// 上行：注册（不含 gateway_id）
 	if err := send(&boardv1.Envelope{
 		MsgId: uuid.NewString(),
 		Payload: &boardv1.Envelope_Register{Register: &boardv1.Register{
@@ -83,6 +87,7 @@ func (a *Agent) session() error {
 
 	errCh := make(chan error, 1)
 	go func() {
+		// 【关键·收指令】读帧，遇 Command 交 logic 执行并回 CommandResult
 		for {
 			raw, err := frame.ReadFrame(conn)
 			if err != nil {
@@ -95,7 +100,7 @@ func (a *Agent) session() error {
 				return
 			}
 			if cmd := env.GetCommand(); cmd != nil {
-				res := HandleCommand(cmd)
+				res := logic.HandleCommand(cmd)
 				if err := send(&boardv1.Envelope{
 					MsgId:   uuid.NewString(),
 					Payload: &boardv1.Envelope_CommandResult{CommandResult: res},

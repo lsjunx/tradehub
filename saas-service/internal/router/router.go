@@ -1,3 +1,4 @@
+// Package router 注册 Gin 路由并组装 handle/logic 依赖。
 package router
 
 import (
@@ -17,19 +18,19 @@ type Deps struct {
 	UI       *logic.UIHub
 }
 
-// NewEngine 组装 gin 引擎与分层依赖。
+// NewEngine 组装 gin 引擎。
 //
-// REST（真前端契约）：
+// REST：统一 {code,message,data,timestamp}
 //
 //	GET  /api/devices
 //	GET  /api/devices/:id
-//	POST /api/devices/:id/commands  → 202 {cmd_id,status:accepted}
+//	POST /api/devices/:id/commands  → data={cmd_id,status:accepted}
 //	GET  /api/commands/:cmd_id
 //
 // WS：
 //
-//	/ws/ui      ← device_updated | command_result
-//	/ws/gateway ← 仅 Gateway
+//	/ws/gateway ← Gateway（type 见 proto/cloud MsgType）
+//	/ws/ui      ← 浏览器（uievent.DeviceUpdated | CommandResult）
 func NewEngine(d Deps) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
