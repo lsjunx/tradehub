@@ -40,6 +40,7 @@ func main() {
 		Cloud:     cloud,
 	}
 	cloud.OnCommand = func(deviceID, cmdID, action, args string) {
+		log.Printf("cloud command device=%s cmd_id=%s action=%s args=%q", deviceID, cmdID, action, args)
 		if err := srv.SendCommand(deviceID, cmdID, action, args); err != nil {
 			log.Printf("forward command to %s: %v", deviceID, err)
 			_ = cloud.Send(cloudclient.TypeCommandResult, map[string]any{
@@ -48,7 +49,9 @@ func main() {
 				"ok":        false,
 				"message":   "device unreachable",
 			})
+			return
 		}
+		log.Printf("forwarded command to board %s", deviceID)
 	}
 
 	go func() {

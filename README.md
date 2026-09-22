@@ -45,4 +45,25 @@ curl.exe -k https://127.0.0.1:8443/api/devices
 curl.exe -k -X POST https://127.0.0.1:8443/api/devices/<device_id>/commands -H "Content-Type: application/json" -d "{\"action\":\"echo\",\"args\":\"hello\"}"
 ```
 
+## saas-service 分层与前端契约
+
+```
+router  → 注册 Gin 路由
+handle  → 解析请求 / 写响应（含 WS 升级）
+logic   → 业务规则（设备、异步指令、Gateway 消息）
+store / gatewayhub → 内存存储与连接管理
+```
+
+**REST（真前端）**
+- `GET /api/devices` / `GET /api/devices/:id`
+- `POST /api/devices/:id/commands` → **202** `{cmd_id, device_id, status:"accepted"}`
+- `GET /api/commands/:cmd_id` → 查询指令状态（accepted/succeeded/failed/timeout）
+- 错误体：`{code, message}`
+
+**WS `/ws/ui`**
+- `device_updated`：设备快照增量
+- `command_result`：`{device_id, cmd_id, ok, message}`
+
+指令为异步：HTTP 只受理，结果靠 WS（或轮询 commands API）。
+
 设计文档：`docs/superpowers/specs/2026-09-22-saas-gateway-board-design.md`

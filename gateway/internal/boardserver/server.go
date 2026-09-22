@@ -91,13 +91,15 @@ func (s *Server) handle(conn net.Conn) {
 		case *boardv1.Envelope_Heartbeat:
 			hb := p.Heartbeat
 			_ = s.Cloud.Send(cloudclient.TypeDeviceHeartbeat, map[string]any{
-				"device_id":   hb.GetDeviceId(),
-				"ts_unix_ms":  hb.GetTsUnixMs(),
-				"status":      hb.GetStatus(),
-				"gateway_id":  s.GatewayID,
+				"device_id":  hb.GetDeviceId(),
+				"ts_unix_ms": hb.GetTsUnixMs(),
+				"status":     hb.GetStatus(),
+				"gateway_id": s.GatewayID,
 			})
 		case *boardv1.Envelope_CommandResult:
 			cr := p.CommandResult
+			log.Printf("board result device=%s cmd_id=%s ok=%v message=%q",
+				cr.GetDeviceId(), cr.GetCmdId(), cr.GetOk(), cr.GetMessage())
 			_ = s.Cloud.Send(cloudclient.TypeCommandResult, map[string]any{
 				"device_id": cr.GetDeviceId(),
 				"cmd_id":    cr.GetCmdId(),

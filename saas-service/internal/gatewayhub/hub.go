@@ -103,7 +103,7 @@ func (h *Hub) Complete(res CommandResult) {
 	}
 }
 
-func (h *Hub) CancelPending(cmdID string) {
+func (h *Hub) CancelPending(cmdID string) bool {
 	h.mu.Lock()
 	ch, ok := h.pending[cmdID]
 	if ok {
@@ -113,6 +113,7 @@ func (h *Hub) CancelPending(cmdID string) {
 	if ok {
 		close(ch)
 	}
+	return ok
 }
 
 func (h *Hub) Emit(eventType string, payload any) {
