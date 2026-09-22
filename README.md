@@ -6,7 +6,7 @@
 
 ```powershell
 .\certs\generate.ps1
-# 或: go run ./scripts/gencert -out certs
+# 或: Push-Location scripts\gencert; go run . -out ..\..\certs; Pop-Location
 ```
 
 产出：`certs/server.crt`、`certs/server.key`、`certs/ca.crt`（gitignore）。
