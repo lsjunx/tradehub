@@ -8,3 +8,6 @@ certs/*.srl
 **/internal/pb/
 *.exe
 .superpowers/
+
+bin/
+body.json
