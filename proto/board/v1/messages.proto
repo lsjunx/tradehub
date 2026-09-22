@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package board.v1;
+
+option go_package = "github.com/local/board-agent/internal/pb/board/v1;boardv1";
+
+message Envelope {
+  string msg_id = 1;
+  oneof payload {
+    Register register = 10;
+    Heartbeat heartbeat = 11;
+    Command command = 12;
+    CommandResult command_result = 13;
+  }
+}
+
+message Register {
+  string device_id = 1;
+  string ip = 2;
+  int32 port = 3;
+}
+
+message Heartbeat {
+  string device_id = 1;
+  int64 ts_unix_ms = 2;
+  string status = 3;
+}
+
+message Command {
+  string device_id = 1;
+  string cmd_id = 2;
+  string action = 3;
+  string args = 4;
+}
+
+message CommandResult {
+  string device_id = 1;
+  string cmd_id = 2;
+  bool ok = 3;
+  string message = 4;
+}
