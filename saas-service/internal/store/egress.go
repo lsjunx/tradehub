@@ -4,10 +4,10 @@ import "sync"
 
 // Egress is a SaaS-managed proxy endpoint in the pool.
 type Egress struct {
-	ID       string
-	ProxyURL string
-	Region   string
-	Healthy  bool
+	ID       string `json:"id"`
+	ProxyURL string `json:"proxy_url"`
+	Region   string `json:"region"`
+	Healthy  bool   `json:"healthy"`
 }
 
 // EgressStore holds the in-memory egress pool (later DB/Redis).

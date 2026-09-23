@@ -21,11 +21,11 @@ const (
 
 // Account binds a chat/app identity to a device and optional egress.
 type Account struct {
-	ID       string
-	App      string
-	DeviceID string
-	EgressID string
-	Tier     string
+	ID       string `json:"id"`
+	App      string `json:"app"`
+	DeviceID string `json:"device_id"`
+	EgressID string `json:"egress_id"`
+	Tier     string `json:"tier"`
 }
 
 // AccountStore holds in-memory account records.
