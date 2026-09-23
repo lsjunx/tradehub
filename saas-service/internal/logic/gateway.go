@@ -102,12 +102,24 @@ func (l *GatewayLogic) HandleMessage(typ string, payload json.RawMessage) (gatew
 			break
 		}
 		l.applyRiskEvent(p.Name, p.DeviceID, p.PayloadJSON)
-		l.UI.Broadcast(uievent.AccountRisk, p)
+		if shouldBroadcastAccountRisk(p.Name) {
+			l.UI.Broadcast(uievent.AccountRisk, p)
+		}
 
 	default:
 		log.Printf("未知 Gateway 消息 type=%q", typ)
 	}
 	return "", false
+}
+
+func shouldBroadcastAccountRisk(name string) bool {
+	switch name {
+	case "egress.unhealthy", "account.session_dead", "account.challenge",
+		"account.rate_limited", "account.login_required":
+		return true
+	default:
+		return false
+	}
 }
 
 func (l *GatewayLogic) applyRiskEvent(name, deviceID, payloadJSON string) {

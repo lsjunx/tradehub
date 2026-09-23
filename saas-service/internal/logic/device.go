@@ -95,7 +95,7 @@ func (l *DeviceLogic) AcceptCommand(deviceID string, req CommandRequest) (*Comma
 	if !l.Hub.HasGateway(dev.GatewayID) {
 		return nil, bizerr.New(http.StatusConflict, "gateway not connected")
 	}
-	if err := l.authorizeCommand(req); err != nil {
+	if err := l.authorizeCommand(deviceID, req); err != nil {
 		return nil, err
 	}
 
@@ -135,7 +135,7 @@ func (l *DeviceLogic) AcceptCommand(deviceID string, req CommandRequest) (*Comma
 	}, nil
 }
 
-func (l *DeviceLogic) authorizeCommand(req CommandRequest) error {
+func (l *DeviceLogic) authorizeCommand(deviceID string, req CommandRequest) error {
 	if req.AccountID == "" {
 		if policy.AllowedWithoutAccount(req.Action) {
 			return nil
@@ -145,6 +145,9 @@ func (l *DeviceLogic) authorizeCommand(req CommandRequest) error {
 	acc, ok := l.Accounts.Get(req.AccountID)
 	if !ok {
 		return bizerr.NotFound("account not found")
+	}
+	if acc.DeviceID != deviceID {
+		return bizerr.New(http.StatusConflict, "account_device_mismatch")
 	}
 	var eg *store.Egress
 	if acc.EgressID != "" {

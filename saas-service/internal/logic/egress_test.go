@@ -26,6 +26,20 @@ func (f *fakeEgressHub) SendJSON(_ string, typ string, payload any) error {
 	return nil
 }
 
+func TestUpsertAccountPreservesEgressBinding(t *testing.T) {
+	es := store.NewEgressStore()
+	as := store.NewAccountStore()
+	as.Upsert(store.Account{ID: "a1", DeviceID: "d1", EgressID: "e1", Tier: store.TierNormal})
+	l := NewEgressLogic(store.New(), &fakeEgressHub{}, as, es)
+	if err := l.UpsertAccount(AccountUpsertRequest{ID: "a1", App: "tg", DeviceID: "d1", Tier: store.TierWarming}); err != nil {
+		t.Fatal(err)
+	}
+	acc, ok := as.Get("a1")
+	if !ok || acc.EgressID != "e1" {
+		t.Fatalf("egress cleared: %+v ok=%v", acc, ok)
+	}
+}
+
 func TestBindAndPush(t *testing.T) {
 	es := store.NewEgressStore()
 	es.Put(store.Egress{ID: "e1", ProxyURL: "socks5://pool", Healthy: true})

@@ -41,6 +41,20 @@ func NewAccountStore() *AccountStore {
 func (s *AccountStore) Upsert(acc Account) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if prev, ok := s.byID[acc.ID]; ok {
+		if acc.App == "" {
+			acc.App = prev.App
+		}
+		if acc.DeviceID == "" {
+			acc.DeviceID = prev.DeviceID
+		}
+		if acc.EgressID == "" {
+			acc.EgressID = prev.EgressID
+		}
+		if acc.Tier == "" {
+			acc.Tier = prev.Tier
+		}
+	}
 	cp := acc
 	s.byID[acc.ID] = &cp
 }

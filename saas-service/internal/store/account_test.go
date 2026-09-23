@@ -2,6 +2,16 @@ package store
 
 import "testing"
 
+func TestUpsertMergesPreservesEgressID(t *testing.T) {
+	as := NewAccountStore()
+	as.Upsert(Account{ID: "a1", App: "tg", DeviceID: "d1", EgressID: "e1", Tier: TierNormal})
+	as.Upsert(Account{ID: "a1", App: "tg", DeviceID: "d1", Tier: TierWarming})
+	acc, ok := as.Get("a1")
+	if !ok || acc.EgressID != "e1" || acc.Tier != TierWarming {
+		t.Fatalf("got %+v ok=%v", acc, ok)
+	}
+}
+
 func TestBindRequiresHealthyEgress(t *testing.T) {
 	es := NewEgressStore()
 	as := NewAccountStore()

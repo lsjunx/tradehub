@@ -25,6 +25,15 @@ func TestHandleMessage_CapabilityStoresEntries(t *testing.T) {
 	}
 }
 
+func TestShouldBroadcastAccountRisk(t *testing.T) {
+	if !shouldBroadcastAccountRisk("account.session_dead") {
+		t.Fatal("expected broadcast for session_dead")
+	}
+	if shouldBroadcastAccountRisk("device.unknown_noise") {
+		t.Fatal("expected no broadcast for unknown event")
+	}
+}
+
 func TestHandleMessage_SessionDeadSetsTierDead(t *testing.T) {
 	accounts := store.NewAccountStore()
 	accounts.Upsert(store.Account{ID: "a1", App: "tg", DeviceID: "d1", Tier: store.TierNormal})

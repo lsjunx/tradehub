@@ -79,9 +79,22 @@ func TestAcceptCommandRequiresAccount(t *testing.T) {
 	}
 }
 
+func TestAcceptCommandAccountDeviceMismatch(t *testing.T) {
+	l, accounts := newTestDeviceLogic(t, "gw1")
+	accounts.Upsert(store.Account{ID: "a1", DeviceID: "other", Tier: store.TierNormal})
+	_, err := l.AcceptCommand("dev1", CommandRequest{Action: "echo", AccountID: "a1"})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	ae, ok := bizerr.As(err)
+	if !ok || ae.Code != http.StatusConflict || ae.Message != "account_device_mismatch" {
+		t.Fatalf("got %v", err)
+	}
+}
+
 func TestAcceptCommandPolicyDenyDeadAccount(t *testing.T) {
 	l, accounts := newTestDeviceLogic(t, "gw1")
-	accounts.Upsert(store.Account{ID: "a1", Tier: store.TierDead})
+	accounts.Upsert(store.Account{ID: "a1", DeviceID: "dev1", Tier: store.TierDead})
 	_, err := l.AcceptCommand("dev1", CommandRequest{Action: "echo", AccountID: "a1"})
 	if err == nil {
 		t.Fatal("expected error")
