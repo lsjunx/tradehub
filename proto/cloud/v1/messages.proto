@@ -16,6 +16,8 @@ enum MsgType {
   MSG_TYPE_DEVICE_OFFLINE = 4;
   MSG_TYPE_COMMAND = 5;           // SaaS → Gateway
   MSG_TYPE_COMMAND_RESULT = 6;    // Gateway → SaaS
+  MSG_TYPE_EVENT = 7;
+  MSG_TYPE_CAPABILITY = 8;
 }
 
 message GatewayHello {
@@ -53,4 +55,24 @@ message CommandResult {
   string cmd_id = 2;
   bool ok = 3;
   string message = 4;
+}
+
+message DeviceEvent {
+  string event_id = 1;
+  string device_id = 2;
+  string name = 3;
+  string payload_json = 4;
+  int64 ts_unix_ms = 5;
+  string gateway_id = 6;
+}
+
+message DeviceCapability {
+  string device_id = 1;
+  string gateway_id = 2;
+  repeated CapabilityEntry entries = 3;
+}
+
+message CapabilityEntry {
+  string action = 1;
+  string risk_hint = 2;
 }

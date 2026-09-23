@@ -34,3 +34,12 @@ func TestParseType(t *testing.T) {
 		t.Fatalf("wire name %q", TypeGatewayHello)
 	}
 }
+
+func TestTypeNameEventCapability(t *testing.T) {
+	if TypeName(cloudv1.MsgType_MSG_TYPE_EVENT) != "event" {
+		t.Fatalf("got %q", TypeName(cloudv1.MsgType_MSG_TYPE_EVENT))
+	}
+	if ParseType("capability") != cloudv1.MsgType_MSG_TYPE_CAPABILITY {
+		t.Fatal("parse capability")
+	}
+}

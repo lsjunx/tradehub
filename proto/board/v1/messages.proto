@@ -11,6 +11,8 @@ message Envelope {
     Heartbeat heartbeat = 11;
     Command command = 12;
     CommandResult command_result = 13;
+    Event event = 14;
+    Capability capability = 15;
   }
 }
 
@@ -31,6 +33,8 @@ message Command {
   string cmd_id = 2;
   string action = 3;
   string args = 4;
+  string risk_class = 5; // safe|sensitive|high; optional
+  string flow_id = 6;    // required for ui.* when enforced later
 }
 
 message CommandResult {
@@ -38,4 +42,22 @@ message CommandResult {
   string cmd_id = 2;
   bool ok = 3;
   string message = 4;
+}
+
+message Event {
+  string event_id = 1;
+  string device_id = 2;
+  string name = 3;
+  string payload_json = 4;
+  int64 ts_unix_ms = 5;
+}
+
+message CapabilityEntry {
+  string action = 1;
+  string risk_hint = 2; // safe|sensitive|high
+}
+
+message Capability {
+  string device_id = 1;
+  repeated CapabilityEntry entries = 2;
 }
