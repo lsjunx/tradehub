@@ -82,6 +82,15 @@ func (a *Agent) serveSession() error {
 		return err
 	}
 
+	entries := logic.DefaultRouter().CapabilityEntries()
+	_ = send(&boardv1.Envelope{
+		MsgId: uuid.NewString(),
+		Payload: &boardv1.Envelope_Capability{Capability: &boardv1.Capability{
+			DeviceId: a.DeviceID,
+			Entries:  entries,
+		}},
+	})
+
 	ticker := time.NewTicker(a.Cfg.HeartbeatInterval)
 	defer ticker.Stop()
 
