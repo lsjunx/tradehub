@@ -22,6 +22,8 @@
 .\scripts\gen-proto.ps1
 ```
 
+群控相关改动（`event` / `capability` 等 MsgType）依赖生成代码，改 `proto/` 后须重新执行。
+
 ## 启动（三个终端）
 
 ```powershell
@@ -91,6 +93,7 @@ frame / identity / netinfo / config
 - `GET /api/devices` / `GET /api/devices/:id`
 - `POST /api/devices/:id/commands` → `data: {cmd_id, device_id, status:"accepted"}`
 - `GET /api/commands/:cmd_id` → 查询指令状态
+- **群控基础**：`POST/GET /api/egress`（出口池 `{id, proxy_url, region}`）；`POST/GET /api/accounts`（`{id, app, device_id, tier?}`）；`POST /api/accounts/:id/egress`（`{egress_id}` 绑定，在线则推送 `egress.apply`）
 
 统一返回：
 
@@ -115,6 +118,13 @@ frame / identity / netinfo / config
 
 - `device_updated`：`data` 为设备快照
 - `command_result`：`data` 为执行结果
+- `account_risk`：Board 风险 `event` 转发（如 `account.challenge`）
+
+**Board 指令 action**（Plugin Router）：`echo`（args 字符串）；`egress.apply` / `egress.clear`（args JSON，含 `account_id` 等，与 SaaS 绑定一致）。
+
+`POST .../commands` body 可选 `account_id`：除 `echo` 与 `egress.*` 外须带已注册账号并通过 Policy，否则 `account_required` / 策略拒绝。
+
+**Gateway↔SaaS 线网 type**（`proto/cloud/v1` → `cloudwire`，Gateway 透明转发）：除原有 register/heartbeat/command 外，新增 `capability`（板端能力列表，SaaS 内存存）、`event`（`name` + `payload_json`，如 `egress.unhealthy`、`account.session_dead` → 出口/ tier 侧效应）。
 
 指令为异步：HTTP 只受理，结果靠 WS（或轮询 commands API）。
 
