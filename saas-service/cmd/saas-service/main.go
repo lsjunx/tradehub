@@ -18,6 +18,7 @@ import (
 	"github.com/local/saas-service/internal/config"
 	"github.com/local/saas-service/internal/gatewayhub"
 	"github.com/local/saas-service/internal/logic"
+	"github.com/local/saas-service/internal/policy"
 	"github.com/local/saas-service/internal/router"
 	"github.com/local/saas-service/internal/store"
 )
@@ -30,9 +31,15 @@ func main() {
 
 	st := store.New()
 	cmds := store.NewCommandStore()
+	accounts := store.NewAccountStore()
+	egress := store.NewEgressStore()
+	pol := policy.New()
 	hub := gatewayhub.New()
 	ui := logic.NewUIHub()
-	engine := router.NewEngine(router.Deps{Store: st, Commands: cmds, Hub: hub, UI: ui})
+	engine := router.NewEngine(router.Deps{
+		Store: st, Commands: cmds, Hub: hub, UI: ui,
+		Accounts: accounts, Egress: egress, Policy: pol,
+	})
 
 	// 心跳超时扫描：直接改 store 并推 UI（不经 Gateway）
 	go func() {

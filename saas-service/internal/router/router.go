@@ -7,6 +7,7 @@ import (
 	"github.com/local/saas-service/internal/gatewayhub"
 	"github.com/local/saas-service/internal/handle"
 	"github.com/local/saas-service/internal/logic"
+	"github.com/local/saas-service/internal/policy"
 	"github.com/local/saas-service/internal/store"
 )
 
@@ -16,6 +17,9 @@ type Deps struct {
 	Commands *store.CommandStore
 	Hub      *gatewayhub.Hub
 	UI       *logic.UIHub
+	Accounts *store.AccountStore
+	Egress   *store.EgressStore
+	Policy   *policy.Policy
 }
 
 // NewEngine 组装 gin 引擎。
@@ -36,7 +40,7 @@ func NewEngine(d Deps) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery(), gin.Logger())
 
-	deviceLogic := logic.NewDeviceLogic(d.Store, d.Hub, d.Commands)
+	deviceLogic := logic.NewDeviceLogic(d.Store, d.Hub, d.Commands, d.Accounts, d.Egress, d.Policy)
 	gatewayLogic := logic.NewGatewayLogic(d.Store, d.Hub, d.UI)
 
 	deviceH := handle.NewDeviceHandle(deviceLogic)

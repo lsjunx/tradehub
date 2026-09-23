@@ -12,6 +12,7 @@ import (
 	bizerr "github.com/local/saas-service/internal/common/errors"
 	"github.com/local/saas-service/internal/common/uievent"
 	"github.com/local/saas-service/internal/gatewayhub"
+	"github.com/local/saas-service/internal/policy"
 	"github.com/local/saas-service/internal/store"
 )
 
@@ -22,10 +23,27 @@ type DeviceLogic struct {
 	Store    *store.Store
 	Hub      *gatewayhub.Hub
 	Commands *store.CommandStore
+	Accounts *store.AccountStore
+	Egress   *store.EgressStore
+	Policy   *policy.Policy
 }
 
-func NewDeviceLogic(st *store.Store, hub *gatewayhub.Hub, cmds *store.CommandStore) *DeviceLogic {
-	return &DeviceLogic{Store: st, Hub: hub, Commands: cmds}
+func NewDeviceLogic(
+	st *store.Store,
+	hub *gatewayhub.Hub,
+	cmds *store.CommandStore,
+	accounts *store.AccountStore,
+	egress *store.EgressStore,
+	pol *policy.Policy,
+) *DeviceLogic {
+	return &DeviceLogic{
+		Store:    st,
+		Hub:      hub,
+		Commands: cmds,
+		Accounts: accounts,
+		Egress:   egress,
+		Policy:   pol,
+	}
 }
 
 func (l *DeviceLogic) ListDevices() []store.Device {
@@ -50,8 +68,9 @@ func (l *DeviceLogic) GetCommand(cmdID string) (*store.CommandRecord, error) {
 
 // CommandRequest 下发指令入参。
 type CommandRequest struct {
-	Action string `json:"action"`
-	Args   string `json:"args"`
+	Action    string `json:"action"`
+	Args      string `json:"args"`
+	AccountID string `json:"account_id"`
 }
 
 // CommandAccept 异步受理响应。
@@ -75,6 +94,9 @@ func (l *DeviceLogic) AcceptCommand(deviceID string, req CommandRequest) (*Comma
 	}
 	if !l.Hub.HasGateway(dev.GatewayID) {
 		return nil, bizerr.New(http.StatusConflict, "gateway not connected")
+	}
+	if err := l.authorizeCommand(req); err != nil {
+		return nil, err
 	}
 
 	cmdID := uuid.NewString()
@@ -111,6 +133,31 @@ func (l *DeviceLogic) AcceptCommand(deviceID string, req CommandRequest) (*Comma
 		DeviceID: deviceID,
 		Status:   store.CmdAccepted,
 	}, nil
+}
+
+func (l *DeviceLogic) authorizeCommand(req CommandRequest) error {
+	if req.AccountID == "" {
+		if policy.AllowedWithoutAccount(req.Action) {
+			return nil
+		}
+		return bizerr.New(http.StatusConflict, "account_required")
+	}
+	acc, ok := l.Accounts.Get(req.AccountID)
+	if !ok {
+		return bizerr.NotFound("account not found")
+	}
+	var eg *store.Egress
+	if acc.EgressID != "" {
+		if e, ok := l.Egress.Get(acc.EgressID); ok {
+			cp := e
+			eg = &cp
+		}
+	}
+	decision := l.Policy.Check(&acc, eg, req.Action)
+	if !decision.Allow {
+		return bizerr.New(http.StatusConflict, decision.Reason)
+	}
+	return nil
 }
 
 func (l *DeviceLogic) waitCommandResult(cmdID, deviceID string, wait <-chan gatewayhub.CommandResult) {
