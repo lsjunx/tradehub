@@ -55,6 +55,16 @@ func (s *AccountStore) Get(id string) (Account, bool) {
 	return *a, true
 }
 
+func (s *AccountStore) List() []Account {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]Account, 0, len(s.byID))
+	for _, a := range s.byID {
+		out = append(out, *a)
+	}
+	return out
+}
+
 func (s *AccountStore) BindEgress(es *EgressStore, accountID, egressID string) error {
 	eg, ok := es.Get(egressID)
 	if !ok {

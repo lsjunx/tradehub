@@ -32,3 +32,13 @@ func (s *EgressStore) Get(id string) (Egress, bool) {
 	eg, ok := s.byID[id]
 	return eg, ok
 }
+
+func (s *EgressStore) List() []Egress {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]Egress, 0, len(s.byID))
+	for _, eg := range s.byID {
+		out = append(out, eg)
+	}
+	return out
+}

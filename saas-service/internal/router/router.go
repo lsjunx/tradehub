@@ -30,6 +30,11 @@ type Deps struct {
 //	GET  /api/devices/:id
 //	POST /api/devices/:id/commands  → data={cmd_id,status:accepted}
 //	GET  /api/commands/:cmd_id
+//	POST /api/egress
+//	GET  /api/egress
+//	POST /api/accounts
+//	GET  /api/accounts
+//	POST /api/accounts/:id/egress
 //
 // WS：
 //
@@ -41,9 +46,11 @@ func NewEngine(d Deps) *gin.Engine {
 	r.Use(gin.Recovery(), gin.Logger())
 
 	deviceLogic := logic.NewDeviceLogic(d.Store, d.Hub, d.Commands, d.Accounts, d.Egress, d.Policy)
+	egressLogic := logic.NewEgressLogic(d.Store, d.Hub, d.Accounts, d.Egress)
 	gatewayLogic := logic.NewGatewayLogic(d.Store, d.Hub, d.UI)
 
 	deviceH := handle.NewDeviceHandle(deviceLogic)
+	egressH := handle.NewEgressHandle(egressLogic)
 	webH := handle.NewWebHandle()
 	gwWSH := handle.NewGatewayWSHandle(gatewayLogic, d.Hub)
 	uiWSH := handle.NewUIWSHandle(d.UI)
@@ -53,6 +60,11 @@ func NewEngine(d Deps) *gin.Engine {
 	r.GET("/api/devices/:id", deviceH.GetDevice)
 	r.POST("/api/devices/:id/commands", deviceH.SendCommand)
 	r.GET("/api/commands/:cmd_id", deviceH.GetCommand)
+	r.POST("/api/egress", egressH.Upsert)
+	r.GET("/api/egress", egressH.ListEgress)
+	r.POST("/api/accounts", egressH.UpsertAccount)
+	r.GET("/api/accounts", egressH.ListAccounts)
+	r.POST("/api/accounts/:id/egress", egressH.BindEgress)
 	r.GET("/ws/gateway", gwWSH.Serve)
 	r.GET("/ws/ui", uiWSH.Serve)
 
