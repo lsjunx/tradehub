@@ -4,10 +4,14 @@ package logic
 import (
 	"log"
 
+	"github.com/local/board-agent/internal/egress"
 	boardv1 "github.com/local/board-agent/internal/pb/board/v1"
 )
 
-var defaultRouter = NewRouter(EchoPlugin{})
+// EgressStore holds per-account proxy config applied via egress.apply (MVP in-memory).
+var EgressStore = egress.NewStore()
+
+var defaultRouter = NewRouter(EchoPlugin{}, NewEgressPlugin(EgressStore))
 
 func HandleCommand(cmd *boardv1.Command) *boardv1.CommandResult {
 	log.Printf("收到指令 cmd_id=%s action=%s args=%q", cmd.GetCmdId(), cmd.GetAction(), cmd.GetArgs())
