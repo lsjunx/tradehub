@@ -11,3 +11,5 @@ certs/*.srl
 
 bin/
 body.json
+
+.worktrees/
