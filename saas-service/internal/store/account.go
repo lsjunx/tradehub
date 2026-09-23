@@ -65,6 +65,30 @@ func (s *AccountStore) List() []Account {
 	return out
 }
 
+func (s *AccountStore) SetTier(accountID, tier string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	a, ok := s.byID[accountID]
+	if !ok {
+		return ErrAccountNotFound
+	}
+	a.Tier = tier
+	return nil
+}
+
+// ListByDevice returns accounts bound to deviceID.
+func (s *AccountStore) ListByDevice(deviceID string) []Account {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var out []Account
+	for _, a := range s.byID {
+		if a.DeviceID == deviceID {
+			out = append(out, *a)
+		}
+	}
+	return out
+}
+
 func (s *AccountStore) BindEgress(es *EgressStore, accountID, egressID string) error {
 	eg, ok := es.Get(egressID)
 	if !ok {

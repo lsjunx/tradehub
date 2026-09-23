@@ -6,6 +6,8 @@ import "github.com/local/saas-service/internal/common/cloudwire"
 const (
 	// DeviceUpdated 设备快照变更（注册/心跳降频/离线）。
 	DeviceUpdated = "device_updated"
+	// AccountRisk 账号/出口风险事件（challenge、熔断等）。
+	AccountRisk = "account_risk"
 )
 
 // CommandResult 指令执行结果（与 Gateway 线网 type 同名）。

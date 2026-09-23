@@ -33,12 +33,13 @@ func main() {
 	cmds := store.NewCommandStore()
 	accounts := store.NewAccountStore()
 	egress := store.NewEgressStore()
+	caps := store.NewCapabilityStore()
 	pol := policy.New()
 	hub := gatewayhub.New()
 	ui := logic.NewUIHub()
 	engine := router.NewEngine(router.Deps{
 		Store: st, Commands: cmds, Hub: hub, UI: ui,
-		Accounts: accounts, Egress: egress, Policy: pol,
+		Accounts: accounts, Egress: egress, Caps: caps, Policy: pol,
 	})
 
 	// 心跳超时扫描：直接改 store 并推 UI（不经 Gateway）

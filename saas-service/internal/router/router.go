@@ -19,6 +19,7 @@ type Deps struct {
 	UI       *logic.UIHub
 	Accounts *store.AccountStore
 	Egress   *store.EgressStore
+	Caps     *store.CapabilityStore
 	Policy   *policy.Policy
 }
 
@@ -47,7 +48,7 @@ func NewEngine(d Deps) *gin.Engine {
 
 	deviceLogic := logic.NewDeviceLogic(d.Store, d.Hub, d.Commands, d.Accounts, d.Egress, d.Policy)
 	egressLogic := logic.NewEgressLogic(d.Store, d.Hub, d.Accounts, d.Egress)
-	gatewayLogic := logic.NewGatewayLogic(d.Store, d.Hub, d.UI)
+	gatewayLogic := logic.NewGatewayLogic(d.Store, d.Hub, d.UI, d.Caps, d.Accounts, d.Egress)
 
 	deviceH := handle.NewDeviceHandle(deviceLogic)
 	egressH := handle.NewEgressHandle(egressLogic)

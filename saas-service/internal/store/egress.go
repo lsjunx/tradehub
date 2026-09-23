@@ -33,6 +33,18 @@ func (s *EgressStore) Get(id string) (Egress, bool) {
 	return eg, ok
 }
 
+func (s *EgressStore) SetHealthy(id string, healthy bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	eg, ok := s.byID[id]
+	if !ok {
+		return ErrEgressNotFound
+	}
+	eg.Healthy = healthy
+	s.byID[id] = eg
+	return nil
+}
+
 func (s *EgressStore) List() []Egress {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

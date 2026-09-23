@@ -15,13 +15,16 @@ import (
 
 // GatewayLogic 处理 Gateway → SaaS 的上行 WSS 消息。
 type GatewayLogic struct {
-	Store *store.Store
-	Hub   *gatewayhub.Hub
-	UI    *UIHub
+	Store    *store.Store
+	Hub      *gatewayhub.Hub
+	UI       *UIHub
+	Caps     *store.CapabilityStore
+	Accounts *store.AccountStore
+	Egress   *store.EgressStore
 }
 
-func NewGatewayLogic(st *store.Store, hub *gatewayhub.Hub, ui *UIHub) *GatewayLogic {
-	l := &GatewayLogic{Store: st, Hub: hub, UI: ui}
+func NewGatewayLogic(st *store.Store, hub *gatewayhub.Hub, ui *UIHub, caps *store.CapabilityStore, accounts *store.AccountStore, egress *store.EgressStore) *GatewayLogic {
+	l := &GatewayLogic{Store: st, Hub: hub, UI: ui, Caps: caps, Accounts: accounts, Egress: egress}
 	hub.OnEvent = func(eventType string, payload any) {
 		ui.Broadcast(eventType, payload)
 	}
@@ -76,8 +79,71 @@ func (l *GatewayLogic) HandleMessage(typ string, payload json.RawMessage) (gatew
 		_ = json.Unmarshal(payload, &p)
 		l.Hub.Complete(p)
 
+	case cloudv1.MsgType_MSG_TYPE_CAPABILITY:
+		var p struct {
+			DeviceID string `json:"device_id"`
+			Entries  []store.CapabilityEntry `json:"entries"`
+		}
+		if err := json.Unmarshal(payload, &p); err != nil || p.DeviceID == "" {
+			break
+		}
+		l.Caps.Put(p.DeviceID, p.Entries)
+
+	case cloudv1.MsgType_MSG_TYPE_EVENT:
+		var p struct {
+			EventID     string `json:"event_id"`
+			DeviceID    string `json:"device_id"`
+			Name        string `json:"name"`
+			PayloadJSON string `json:"payload_json"`
+			TsUnixMs    int64  `json:"ts_unix_ms"`
+			GatewayID   string `json:"gateway_id"`
+		}
+		if err := json.Unmarshal(payload, &p); err != nil || p.Name == "" {
+			break
+		}
+		l.applyRiskEvent(p.Name, p.DeviceID, p.PayloadJSON)
+		l.UI.Broadcast(uievent.AccountRisk, p)
+
 	default:
 		log.Printf("未知 Gateway 消息 type=%q", typ)
 	}
 	return "", false
+}
+
+func (l *GatewayLogic) applyRiskEvent(name, deviceID, payloadJSON string) {
+	accountID, egressID := parseRiskPayload(payloadJSON)
+	switch name {
+	case "egress.unhealthy":
+		if egressID != "" {
+			_ = l.Egress.SetHealthy(egressID, false)
+			return
+		}
+		for _, acc := range l.Accounts.ListByDevice(deviceID) {
+			if acc.EgressID != "" {
+				_ = l.Egress.SetHealthy(acc.EgressID, false)
+			}
+		}
+	case "account.session_dead":
+		if accountID != "" {
+			_ = l.Accounts.SetTier(accountID, store.TierDead)
+		}
+	case "account.challenge", "account.rate_limited":
+		if accountID != "" {
+			_ = l.Accounts.SetTier(accountID, store.TierRestricted)
+		}
+	}
+}
+
+func parseRiskPayload(payloadJSON string) (accountID, egressID string) {
+	if payloadJSON == "" {
+		return "", ""
+	}
+	var m struct {
+		AccountID string `json:"account_id"`
+		EgressID  string `json:"egress_id"`
+	}
+	if err := json.Unmarshal([]byte(payloadJSON), &m); err != nil {
+		return "", ""
+	}
+	return m.AccountID, m.EgressID
 }
