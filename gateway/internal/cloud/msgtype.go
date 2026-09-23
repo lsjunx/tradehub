@@ -15,6 +15,8 @@ var (
 	TypeDeviceOffline   = TypeName(cloudv1.MsgType_MSG_TYPE_DEVICE_OFFLINE)
 	TypeCommand         = TypeName(cloudv1.MsgType_MSG_TYPE_COMMAND)
 	TypeCommandResult   = TypeName(cloudv1.MsgType_MSG_TYPE_COMMAND_RESULT)
+	TypeEvent           = TypeName(cloudv1.MsgType_MSG_TYPE_EVENT)
+	TypeCapability      = TypeName(cloudv1.MsgType_MSG_TYPE_CAPABILITY)
 )
 
 // TypeName 用生成代码的 MsgType_name 转为线网字符串。

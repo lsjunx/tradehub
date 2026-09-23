@@ -15,11 +15,16 @@ import (
 	"github.com/local/gateway/internal/session"
 )
 
+// CloudSender 向 SaaS 上报上行消息（便于测试注入 fake）。
+type CloudSender interface {
+	Send(typ string, payload any) error
+}
+
 // Bridge 网关转发核心：上行（Board→SaaS）、下行（SaaS→Board）。
 type Bridge struct {
 	GatewayID string
 	Registry  *session.Registry
-	Cloud     *cloud.Client
+	Cloud     CloudSender
 }
 
 // HandleBoardEnvelope 【关键·上行】处理 Board 发来的一条 protobuf Envelope。
@@ -61,6 +66,32 @@ func (b *Bridge) HandleBoardEnvelope(conn net.Conn, sessionID string, deviceID *
 			"cmd_id":    cr.GetCmdId(),
 			"ok":        cr.GetOk(),
 			"message":   cr.GetMessage(),
+		})
+
+	case *boardv1.Envelope_Event:
+		ev := p.Event
+		_ = b.Cloud.Send(cloud.TypeEvent, map[string]any{
+			"event_id":     ev.GetEventId(),
+			"device_id":    ev.GetDeviceId(),
+			"name":         ev.GetName(),
+			"payload_json": ev.GetPayloadJson(),
+			"ts_unix_ms":   ev.GetTsUnixMs(),
+			"gateway_id":   b.GatewayID,
+		})
+
+	case *boardv1.Envelope_Capability:
+		cap := p.Capability
+		entries := make([]map[string]string, 0, len(cap.GetEntries()))
+		for _, e := range cap.GetEntries() {
+			entries = append(entries, map[string]string{
+				"action":    e.GetAction(),
+				"risk_hint": e.GetRiskHint(),
+			})
+		}
+		_ = b.Cloud.Send(cloud.TypeCapability, map[string]any{
+			"device_id":  cap.GetDeviceId(),
+			"gateway_id": b.GatewayID,
+			"entries":    entries,
 		})
 	}
 	return nil
