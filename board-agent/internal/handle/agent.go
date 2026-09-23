@@ -117,6 +117,15 @@ func (a *Agent) serveSession() error {
 					errCh <- err
 					return
 				}
+				for _, ev := range logic.TakePendingEvents() {
+					if err := send(&boardv1.Envelope{
+						MsgId:   uuid.NewString(),
+						Payload: &boardv1.Envelope_Event{Event: ev},
+					}); err != nil {
+						errCh <- err
+						return
+					}
+				}
 			}
 		}
 	}()
