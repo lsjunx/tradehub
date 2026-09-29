@@ -3,16 +3,16 @@ package logic
 
 import (
 	"fmt"
+	"gateway/internal/common/cloud"
+	"gateway/internal/common/frame"
+	"gateway/internal/common/session"
 	"log"
 	"net"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/tradehub/gateway/internal/cloud"
-	"github.com/tradehub/gateway/internal/frame"
-	boardv1 "github.com/tradehub/gateway/internal/pb/board/v1"
-	"github.com/tradehub/gateway/internal/session"
+	boardv1 "gateway/internal/pb/board/v1"
 )
 
 // CloudSender 向 SaaS 上报上行消息（便于测试注入 fake）。

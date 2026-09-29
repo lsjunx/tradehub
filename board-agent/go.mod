@@ -1,4 +1,4 @@
-module github.com/tradehub/board-agent
+module board-agent
 
 go 1.24.13
 

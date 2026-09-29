@@ -3,7 +3,7 @@ package logic
 import (
 	"testing"
 
-	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
+	boardv1 "board-agent/internal/pb/board/v1"
 )
 
 func TestHandleCommand_Echo(t *testing.T) {

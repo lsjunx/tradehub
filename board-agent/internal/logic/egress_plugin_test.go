@@ -1,11 +1,11 @@
 package logic_test
 
 import (
+	"board-agent/internal/common/egress"
 	"testing"
 
-	"github.com/tradehub/board-agent/internal/egress"
-	"github.com/tradehub/board-agent/internal/logic"
-	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
+	"board-agent/internal/logic"
+	boardv1 "board-agent/internal/pb/board/v1"
 )
 
 func TestRouterEgressApply(t *testing.T) {

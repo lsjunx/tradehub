@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package board.v1;
 
-option go_package = "github.com/tradehub/board-agent/internal/pb/board/v1;boardv1";
+option go_package = "board-agent/internal/pb/board/v1;boardv1";
 
 message Envelope {
   string msg_id = 1;

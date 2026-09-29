@@ -1,3 +1,3 @@
-module github.com/tradehub/gencert
+module gencert
 
 go 1.24.13

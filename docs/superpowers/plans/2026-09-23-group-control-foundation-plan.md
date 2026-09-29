@@ -38,15 +38,15 @@
 | `board-agent/internal/egress/store.go` | Per-device applied proxy config (memory/file) |
 | `board-agent/internal/logic/command.go` | Delegate to router; keep thin |
 | `board-agent/internal/handle/agent.go` | After register: send Capability; route commands via router |
-| `saas-service/internal/store/account.go` | Account records + egress bindings |
-| `saas-service/internal/store/egress.go` | Proxy pool entries |
-| `saas-service/internal/policy/policy.go` | Allow/Deny/Delay for actions |
-| `saas-service/internal/logic/gateway.go` | Handle `event` / `capability` |
-| `saas-service/internal/logic/device.go` | Policy gate + optional account resolution |
-| `saas-service/internal/logic/egress.go` | Bind/apply egress → push `egress.apply` command |
-| `saas-service/internal/handle/egress.go` | REST for pool + bind |
-| `saas-service/internal/router/router.go` | Register new REST routes |
-| `saas-service/internal/common/uievent/types.go` | UI event names for risk/egress if pushed |
+| `saas-server/internal/store/account.go` | Account records + egress bindings |
+| `saas-server/internal/store/egress.go` | Proxy pool entries |
+| `saas-server/internal/policy/policy.go` | Allow/Deny/Delay for actions |
+| `saas-server/internal/logic/gateway.go` | Handle `event` / `capability` |
+| `saas-server/internal/logic/device.go` | Policy gate + optional account resolution |
+| `saas-server/internal/logic/egress.go` | Bind/apply egress → push `egress.apply` command |
+| `saas-server/internal/handle/egress.go` | REST for pool + bind |
+| `saas-server/internal/router/router.go` | Register new REST routes |
+| `saas-server/internal/common/uievent/types.go` | UI event names for risk/egress if pushed |
 
 ---
 
@@ -171,7 +171,7 @@ Expected: PASS
 
 ```bash
 git add proto scripts gateway/internal/cloud/envelope_test.go
-git add board-agent/internal/pb gateway/internal/pb saas-service/internal/pb
+git add board-agent/internal/pb gateway/internal/pb saas-server/internal/pb
 git commit -m "feat(proto): add event and capability envelope types"
 ```
 
@@ -197,7 +197,7 @@ TypeEvent      = TypeName(cloudv1.MsgType_MSG_TYPE_EVENT)
 TypeCapability = TypeName(cloudv1.MsgType_MSG_TYPE_CAPABILITY)
 ```
 
-Same two lines in `saas-service/internal/common/cloudwire/msgtype.go`.
+Same two lines in `saas-server/internal/common/cloudwire/msgtype.go`.
 
 - [ ] **Step 2: Write failing forward test**
 
@@ -209,7 +209,7 @@ package logic
 import (
 	"testing"
 
-	boardv1 "github.com/tradehub/gateway/internal/pb/board/v1"
+	boardv1 "gateway/internal/pb/board/v1"
 )
 
 type fakeCloud struct {
@@ -301,7 +301,7 @@ Expected: PASS
 - [ ] **Step 7: Commit**
 
 ```bash
-git add gateway/internal/logic gateway/internal/cloud saas-service/internal/common/cloudwire/msgtype.go
+git add gateway/internal/logic gateway/internal/cloud saas-server/internal/common/cloudwire/msgtype.go
 git commit -m "feat(gateway): forward event and capability to SaaS"
 ```
 
@@ -329,8 +329,8 @@ package logic_test
 import (
 	"testing"
 
-	"github.com/tradehub/board-agent/internal/logic"
-	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
+	"board-agent/internal/logic"
+	boardv1 "board-agent/internal/pb/board/v1"
 )
 
 func TestRouterEcho(t *testing.T) {
@@ -362,7 +362,7 @@ Expected: FAIL (`NewRouter` undefined)
 ```go
 package logic
 
-import boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
+import boardv1 "board-agent/internal/pb/board/v1"
 
 type Plugin interface {
 	Actions() []string
@@ -419,7 +419,7 @@ func (r *Router) CapabilityEntries() []*boardv1.CapabilityEntry {
 ```go
 package logic
 
-import boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
+import boardv1 "board-agent/internal/pb/board/v1"
 
 type EchoPlugin struct{}
 
@@ -496,7 +496,7 @@ package egress_test
 import (
 	"testing"
 
-	"github.com/tradehub/board-agent/internal/egress"
+	"board-agent/internal/egress"
 )
 
 func TestApplyAndGet(t *testing.T) {
@@ -596,9 +596,9 @@ git commit -m "feat(board): egress.apply stores SaaS-assigned proxy config"
 ### Task 5: SaaS — egress pool + account binding store
 
 **Files:**
-- Create: `saas-service/internal/store/egress.go`
-- Create: `saas-service/internal/store/account.go`
-- Test: `saas-service/internal/store/egress_test.go`, `account_test.go`
+- Create: `saas-server/internal/store/egress.go`
+- Create: `saas-server/internal/store/account.go`
+- Test: `saas-server/internal/store/egress_test.go`, `account_test.go`
 
 **Interfaces:**
 - Produces:
@@ -632,8 +632,8 @@ Tiers as string constants: `new`, `warming`, `normal`, `restricted`, `dead`.
 - [ ] **Step 3: Run tests + commit**
 
 ```bash
-cd saas-service; go test ./internal/store/...
-git add saas-service/internal/store
+cd saas-server; go test ./internal/store/...
+git add saas-server/internal/store
 git commit -m "feat(saas): in-memory account and egress pool stores"
 ```
 
@@ -642,11 +642,11 @@ git commit -m "feat(saas): in-memory account and egress pool stores"
 ### Task 6: SaaS — Policy Allow/Deny + wire into AcceptCommand
 
 **Files:**
-- Create: `saas-service/internal/policy/policy.go`
-- Create: `saas-service/internal/policy/policy_test.go`
-- Create: `saas-service/internal/policy/catalog.go` (action → risk class)
-- Modify: `saas-service/internal/logic/device.go`
-- Modify: `saas-service/cmd/saas-service/main.go` / `router` to inject stores+policy
+- Create: `saas-server/internal/policy/policy.go`
+- Create: `saas-server/internal/policy/policy_test.go`
+- Create: `saas-server/internal/policy/catalog.go` (action → risk class)
+- Modify: `saas-server/internal/logic/device.go`
+- Modify: `saas-server/cmd/saas-server/main.go` / `router` to inject stores+policy
 
 **Interfaces:**
 - Produces: `type Decision struct { Allow bool; Delay time.Duration; Reason string }`
@@ -732,7 +732,7 @@ Inject `AccountStore`, `EgressStore`, `*policy.Policy` into `DeviceLogic` via ro
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd saas-service; go test ./internal/policy/... ./internal/logic/... ./internal/store/...
+cd saas-server; go test ./internal/policy/... ./internal/logic/... ./internal/store/...
 ```
 
 Expected: PASS
@@ -740,7 +740,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add saas-service/internal/policy saas-service/internal/logic saas-service/internal/router saas-service/cmd
+git add saas-server/internal/policy saas-server/internal/logic saas-server/internal/router saas-server/cmd
 git commit -m "feat(saas): policy gate on commands with action catalog"
 ```
 
@@ -749,10 +749,10 @@ git commit -m "feat(saas): policy gate on commands with action catalog"
 ### Task 7: SaaS — REST for egress pool, bind, and push `egress.apply`
 
 **Files:**
-- Create: `saas-service/internal/logic/egress.go`
-- Create: `saas-service/internal/handle/egress.go`
-- Modify: `saas-service/internal/router/router.go`
-- Test: `saas-service/internal/logic/egress_test.go` (table test with fake hub)
+- Create: `saas-server/internal/logic/egress.go`
+- Create: `saas-server/internal/handle/egress.go`
+- Modify: `saas-server/internal/router/router.go`
+- Test: `saas-server/internal/logic/egress_test.go` (table test with fake hub)
 
 **Interfaces:**
 - REST:
@@ -808,7 +808,7 @@ If full E2E not available in CI, unit-test `BindAndPush` with fake `Hub` that re
 - [ ] **Step 4: Commit**
 
 ```bash
-git add saas-service/internal/logic/egress.go saas-service/internal/handle/egress.go saas-service/internal/router
+git add saas-server/internal/logic/egress.go saas-server/internal/handle/egress.go saas-server/internal/router
 git commit -m "feat(saas): egress pool REST and push egress.apply to boards"
 ```
 
@@ -817,10 +817,10 @@ git commit -m "feat(saas): egress pool REST and push egress.apply to boards"
 ### Task 8: SaaS — handle uplink `event` and `capability`
 
 **Files:**
-- Modify: `saas-service/internal/logic/gateway.go`
-- Create: `saas-service/internal/store/capability.go` (device → entries map)
-- Modify: `saas-service/internal/common/uievent/types.go`
-- Test: `saas-service/internal/logic/gateway_event_test.go`
+- Modify: `saas-server/internal/logic/gateway.go`
+- Create: `saas-server/internal/store/capability.go` (device → entries map)
+- Modify: `saas-server/internal/common/uievent/types.go`
+- Test: `saas-server/internal/logic/gateway_event_test.go`
 
 **Interfaces:**
 - On `capability`: store entries for `device_id`

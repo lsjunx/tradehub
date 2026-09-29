@@ -1,6 +1,6 @@
 package logic
 
-import boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
+import boardv1 "board-agent/internal/pb/board/v1"
 
 type Router struct {
 	byAction map[string]Plugin

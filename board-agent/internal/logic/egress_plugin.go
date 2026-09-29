@@ -1,13 +1,13 @@
 package logic
 
 import (
+	"board-agent/internal/common/egress"
 	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
 
-	"github.com/tradehub/board-agent/internal/egress"
-	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
+	boardv1 "board-agent/internal/pb/board/v1"
 )
 
 // EgressPlugin handles SaaS-pushed proxy bindings (egress.apply / egress.clear).

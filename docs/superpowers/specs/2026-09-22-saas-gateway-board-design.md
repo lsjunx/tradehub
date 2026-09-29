@@ -44,7 +44,7 @@ Board  ──protobuf──►  Gateway  ──JSON──►  Cloud  ──JSON�
 
 | 目录 | 职责 |
 |------|------|
-| `saas-service/` | HTTPS Web + REST；WSS 接 Gateway / UI；设备与网关路由；指令下发 |
+| `saas-server/` | HTTPS Web + REST；WSS 接 Gateway / UI；设备与网关路由；指令下发 |
 | `gateway/` | 连云端 WSS；TLS 服务端接 Board；设备会话管理；上下行转发 |
 | `board-agent/` | 设备 ID 持久化；连 Gateway；注册与心跳；执行指令并回执 |
 | `proto/` | 共享 `.proto` 定义（Board 链路 + Gateway↔Cloud 模型） |
@@ -186,9 +186,9 @@ test/
 ├── certs/
 │   ├── generate.ps1
 │   └── generate.sh
-├── saas-service/
+├── saas-server/
 │   ├── go.mod
-│   ├── cmd/saas-service/
+│   ├── cmd/saas-server/
 │   ├── internal/
 │   └── web/
 ├── gateway/
@@ -207,7 +207,7 @@ test/
 
 - 三个服务各自 `go.mod`，不互相 require 业务包
 - `board-agent` / `gateway` 从 `proto/board/v1` 生成本地 `internal/pb/`
-- `gateway` / `saas-service` 从 `proto/cloud/v1` 生成本地 `internal/pb/`（或等价 Go struct）；`saas-service/web` 只消费 REST/WS JSON
+- `gateway` / `saas-server` 从 `proto/cloud/v1` 生成本地 `internal/pb/`（或等价 Go struct）；`saas-server/web` 只消费 REST/WS JSON
 - 配置：命令行 flag 或简单 YAML（`saas_addr`、`listen`、`cert`、`key`、`heartbeat_interval`、`mode`）
 
 ## 9. 非目标（第一版不做）

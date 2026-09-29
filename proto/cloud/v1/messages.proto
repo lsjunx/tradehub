@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package cloud.v1;
 
-option go_package = "github.com/tradehub/saas-service/internal/pb/cloud/v1;cloudv1";
+option go_package = "saas-server/internal/pb/cloud/v1;cloudv1";
 
 // MsgType 表示 WSS JSON 信封中的 type 字段语义。
 // 线网字符串由生成代码的 MsgType_name 推导：去掉 MSG_TYPE_ 前缀再转小写

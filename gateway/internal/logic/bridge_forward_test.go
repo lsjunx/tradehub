@@ -1,11 +1,11 @@
 package logic
 
 import (
+	"gateway/internal/common/cloud"
+	"gateway/internal/common/session"
 	"testing"
 
-	"github.com/tradehub/gateway/internal/cloud"
-	boardv1 "github.com/tradehub/gateway/internal/pb/board/v1"
-	"github.com/tradehub/gateway/internal/session"
+	boardv1 "gateway/internal/pb/board/v1"
 )
 
 type fakeCloud struct {

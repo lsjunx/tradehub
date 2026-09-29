@@ -3,15 +3,15 @@ package handle
 
 import (
 	"crypto/tls"
+	"gateway/internal/common/frame"
 	"log"
 	"net"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/tradehub/gateway/internal/frame"
-	"github.com/tradehub/gateway/internal/logic"
-	boardv1 "github.com/tradehub/gateway/internal/pb/board/v1"
+	"gateway/internal/logic"
+	boardv1 "gateway/internal/pb/board/v1"
 )
 
 // BoardServer Board 侧 TLS 服务端。

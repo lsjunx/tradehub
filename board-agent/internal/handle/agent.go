@@ -2,6 +2,9 @@
 package handle
 
 import (
+	"board-agent/internal/common/frame"
+	"board-agent/internal/common/identity"
+	"board-agent/internal/common/netinfo"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -13,12 +16,9 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/tradehub/board-agent/internal/config"
-	"github.com/tradehub/board-agent/internal/frame"
-	"github.com/tradehub/board-agent/internal/identity"
-	"github.com/tradehub/board-agent/internal/logic"
-	"github.com/tradehub/board-agent/internal/netinfo"
-	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
+	"board-agent/internal/config"
+	"board-agent/internal/logic"
+	boardv1 "board-agent/internal/pb/board/v1"
 )
 
 // Agent 板端连接与会话循环。

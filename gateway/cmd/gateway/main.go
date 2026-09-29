@@ -11,16 +11,16 @@ package main
 
 import (
 	"context"
+	"gateway/internal/common/cloud"
+	"gateway/internal/common/identity"
+	"gateway/internal/common/session"
 	"log"
 	"path/filepath"
 	"time"
 
-	"github.com/tradehub/gateway/internal/cloud"
-	"github.com/tradehub/gateway/internal/config"
-	"github.com/tradehub/gateway/internal/handle"
-	"github.com/tradehub/gateway/internal/identity"
-	"github.com/tradehub/gateway/internal/logic"
-	"github.com/tradehub/gateway/internal/session"
+	"gateway/internal/config"
+	"gateway/internal/handle"
+	"gateway/internal/logic"
 )
 
 func main() {

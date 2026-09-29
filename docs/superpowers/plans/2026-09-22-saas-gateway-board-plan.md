@@ -33,9 +33,9 @@ test/
 │   ├── generate.ps1
 │   ├── generate.sh
 │   ├── ca.crt / server.crt / server.key   # 生成产物，可 gitignore key
-├── saas-service/
+├── saas-server/
 │   ├── go.mod
-│   ├── cmd/saas-service/main.go
+│   ├── cmd/saas-server/main.go
 │   ├── internal/config/config.go
 │   ├── internal/pb/           # 生成自 cloud/v1
 │   ├── internal/store/store.go
@@ -77,7 +77,7 @@ test/
 - Create: `README.md`
 - Create: `certs/generate.ps1`
 - Create: `certs/generate.sh`
-- Create: `saas-service/go.mod`
+- Create: `saas-server/go.mod`
 - Create: `gateway/go.mod`
 - Create: `board-agent/go.mod`
 - Create: `.gitignore`
@@ -111,9 +111,9 @@ certs/*.srl
 
 ```bash
 mkdir saas-service gateway board-agent
-cd saas-service && go mod init github.com/tradehub/saas-service && cd ..
-cd gateway && go mod init github.com/tradehub/gateway && cd ..
-cd board-agent && go mod init github.com/tradehub/board-agent && cd ..
+cd saas-server && go mod init saas-server && cd ..
+cd gateway && go mod init gateway && cd ..
+cd board-agent && go mod init board-agent && cd ..
 ```
 
 - [ ] **Step 3: 编写 certs/generate.ps1**
@@ -135,7 +135,7 @@ openssl req -x509 -newkey rsa:2048 -nodes `
 - [ ] **Step 5: Commit**
 
 ```bash
-git add .gitignore README.md certs/generate.ps1 certs/generate.sh scripts saas-service/go.mod gateway/go.mod board-agent/go.mod
+git add .gitignore README.md certs/generate.ps1 certs/generate.sh scripts saas-server/go.mod gateway/go.mod board-agent/go.mod
 git commit -m "$(cat <<'EOF'
 chore: scaffold three Go modules and cert scripts
 
@@ -172,7 +172,7 @@ git commit -m "chore: scaffold three Go modules and cert scripts"
 ```protobuf
 syntax = "proto3";
 package board.v1;
-option go_package = "github.com/tradehub/board-agent/internal/pb/board/v1;boardv1";
+option go_package = "board-agent/internal/pb/board/v1;boardv1";
 
 message Envelope {
   string msg_id = 1;
@@ -220,7 +220,7 @@ message CommandResult {
 ```protobuf
 syntax = "proto3";
 package cloud.v1;
-option go_package = "github.com/tradehub/saas-service/internal/pb/cloud/v1;cloudv1";
+option go_package = "saas-server/internal/pb/cloud/v1;cloudv1";
 
 // WSS JSON 信封：{"type":"...","payload":{...}}
 // type 取值与下列消息名对应（snake）：gateway_hello, device_register, ...
@@ -271,7 +271,7 @@ message CommandResult {
 
 - `board-agent/internal/pb/board/v1/`
 - `gateway/internal/pb/board/v1/` 与 `gateway/internal/pb/cloud/v1/`
-- `saas-service/internal/pb/cloud/v1/`
+- `saas-server/internal/pb/cloud/v1/`
 
 - [ ] **Step 4: 安装插件并生成**
 
@@ -307,7 +307,7 @@ git commit -m "feat: add board and cloud protobuf schemas"
 - Create: `gateway/internal/frame/frame.go`（同逻辑）
 - Create: `gateway/internal/config/tls_mode.go`
 - Create: `gateway/internal/config/tls_mode_test.go`
-- Create: `saas-service/internal/config/tls_mode.go`（同逻辑）
+- Create: `saas-server/internal/config/tls_mode.go`（同逻辑）
 - Create: `board-agent/internal/config/tls_mode.go`（同逻辑）
 
 **Interfaces:**
@@ -546,14 +546,14 @@ git commit -m "feat(gateway): TLS board server and cloud WSS client"
 ### Task 7: saas-service 路由存储、Gateway WS、REST、指令等待
 
 **Files:**
-- Create: `saas-service/internal/config/config.go`
-- Create: `saas-service/internal/store/store.go`
-- Create: `saas-service/internal/store/store_test.go`
-- Create: `saas-service/internal/gatewayhub/hub.go`
-- Create: `saas-service/internal/api/http.go`
-- Create: `saas-service/internal/api/ws_gateway.go`
-- Create: `saas-service/internal/api/ws_ui.go`
-- Create: `saas-service/cmd/saas-service/main.go`
+- Create: `saas-server/internal/config/config.go`
+- Create: `saas-server/internal/store/store.go`
+- Create: `saas-server/internal/store/store_test.go`
+- Create: `saas-server/internal/gatewayhub/hub.go`
+- Create: `saas-server/internal/api/http.go`
+- Create: `saas-server/internal/api/ws_gateway.go`
+- Create: `saas-server/internal/api/ws_ui.go`
+- Create: `saas-server/cmd/saas-server/main.go`
 
 **Interfaces:**
 - Produces:
@@ -590,9 +590,9 @@ git commit -m "feat(saas): device store, gateway hub, REST and command wait"
 ### Task 8: 简易 Web UI + /ws/ui
 
 **Files:**
-- Create: `saas-service/web/index.html`
-- Modify: `saas-service/internal/api/http.go`（静态文件 `/`）
-- Modify: `saas-service/internal/api/ws_ui.go`
+- Create: `saas-server/web/index.html`
+- Modify: `saas-server/internal/api/http.go`（静态文件 `/`）
+- Modify: `saas-server/internal/api/ws_ui.go`
 
 **Interfaces:**
 - UI：轮询或 WS 刷新设备表；输入 device_id / args，点发送调用 REST 或显示结果
@@ -636,8 +636,8 @@ go run ./scripts/gencert   # 或 certs/generate.ps1
 
 ```powershell
 # terminal 1
-cd saas-service
-go run ./cmd/saas-service -mode development -addr :8443 -cert ../certs/server.crt -key ../certs/server.key
+cd saas-server
+go run ./cmd/saas-server -mode development -addr :8443 -cert ../certs/server.crt -key ../certs/server.key
 
 # terminal 2
 cd gateway
