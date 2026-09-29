@@ -20,12 +20,12 @@ const commandWaitTimeout = 10 * time.Second
 
 // DeviceLogic 设备查询与指令下发。
 type DeviceLogic struct {
-	Store    *store.Store
-	Hub      *gatewayhub.Hub
-	Commands *store.CommandStore
-	Accounts *store.AccountStore
-	Egress   *store.EgressStore
-	Policy   *policy.Policy
+	Store    *store.Store        // 查设备是否在线、所属 Gateway
+	Hub      *gatewayhub.Hub     // 向对应 Gateway 发 command，并等待结果
+	Commands *store.CommandStore // 落库 accepted / 终态，供 GET 查询
+	Accounts *store.AccountStore // 指令带 account_id 时取账号档与绑定
+	Egress   *store.EgressStore  // Policy 校验敏感动作时查出口是否健康
+	Policy   *policy.Policy      // AcceptCommand 发令前 Allow/Deny
 }
 
 func NewDeviceLogic(

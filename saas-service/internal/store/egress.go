@@ -2,15 +2,16 @@ package store
 
 import "sync"
 
-// Egress is a SaaS-managed proxy endpoint in the pool.
+// Egress 是 SaaS 代理池中的一条出口线路（板子上 App 应走此代理出海）。
+// TG/WA 看见的是代理出口 IP，不是板子机房 IP，也不是本 SaaS 公网 IP。
 type Egress struct {
 	ID       string `json:"id"`
-	ProxyURL string `json:"proxy_url"`
+	ProxyURL string `json:"proxy_url"` // 下发给板子的代理地址（含鉴权时可写进 URL）
 	Region   string `json:"region"`
-	Healthy  bool   `json:"healthy"`
+	Healthy  bool   `json:"healthy"` // false 时禁止新绑定，Policy 也拒敏感动作
 }
 
-// EgressStore holds the in-memory egress pool (later DB/Redis).
+// EgressStore 进程内代理池。
 type EgressStore struct {
 	mu   sync.RWMutex
 	byID map[string]Egress

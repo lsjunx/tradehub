@@ -6,7 +6,7 @@ import "github.com/local/saas-service/internal/common/cloudwire"
 const (
 	// DeviceUpdated 设备快照变更（注册/心跳降频/离线）。
 	DeviceUpdated = "device_updated"
-	// AccountRisk 账号/出口风险事件（challenge、熔断等）。
+	// AccountRisk 账号/出口风险（仅白名单 event 名会推，如 challenge、session_dead）。
 	AccountRisk = "account_risk"
 )
 

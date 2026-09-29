@@ -1,4 +1,10 @@
 // Package router 注册 Gin 路由并组装 handle/logic 依赖。
+//
+// 路由按职责分成三层（路径稳定，仅组织方式调整）：
+//
+//  1. 业务 API（/api/*）— 给人/前端：设备、指令、账号、代理池
+//  2. 网络控制面（/ws/gateway）— 给 Gateway：设备上云、指令下发通道
+//  3. UI 推送（/ws/ui）+ 演示页（/）— 给浏览器订阅事件
 package router
 
 import (
@@ -11,63 +17,51 @@ import (
 	"github.com/local/saas-service/internal/store"
 )
 
-// Deps 路由层依赖。
+// Deps 由 main 注入的共享依赖（各 Logic 按需取用）。
 type Deps struct {
-	Store    *store.Store
-	Commands *store.CommandStore
-	Hub      *gatewayhub.Hub
-	UI       *logic.UIHub
-	Accounts *store.AccountStore
-	Egress   *store.EgressStore
-	Caps     *store.CapabilityStore
-	Policy   *policy.Policy
+	Store    *store.Store           // 设备表（注册/心跳/离线）
+	Commands *store.CommandStore    // 指令记录与查询
+	Hub      *gatewayhub.Hub        // Gateway 连接与下行 SendJSON
+	UI       *logic.UIHub           // 浏览器事件广播
+	Accounts *store.AccountStore    // 聊天账号画像（设备绑定、tier）
+	Egress   *store.EgressStore     // 代理出口池（SaaS 管控的业务出口）
+	Caps     *store.CapabilityStore // 设备能力声明（板子上报的 action 列表）
+	Policy   *policy.Policy         // 下发指令前的策略校验
 }
 
-// NewEngine 组装 gin 引擎。
-//
-// REST：统一 {code,message,data,timestamp}
-//
-//	GET  /api/devices
-//	GET  /api/devices/:id
-//	POST /api/devices/:id/commands  → data={cmd_id,status:accepted}
-//	GET  /api/commands/:cmd_id
-//	POST /api/egress
-//	GET  /api/egress
-//	POST /api/accounts
-//	GET  /api/accounts
-//	POST /api/accounts/:id/egress
-//
-// WS：
-//
-//	/ws/gateway ← Gateway（type 见 proto/cloud MsgType）
-//	/ws/ui      ← 浏览器（uievent.DeviceUpdated | CommandResult）
+// handlers 各层路由要用到的 HTTP/WS 入口（由 NewEngine 组装一次）。
+type handlers struct {
+	device  *handle.DeviceHandle
+	egress  *handle.EgressHandle
+	web     *handle.WebHandle
+	gateway *handle.GatewayWSHandle
+	ui      *handle.UIWSHandle
+}
+
+// NewEngine 组装 gin 引擎并按层注册路由。
 func NewEngine(d Deps) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery(), gin.Logger())
 
+	h := wireHandlers(d)
+	registerBusinessAPI(r, h)  // /api/* 群控业务
+	registerControlPlane(r, h) // /ws/gateway 机箱控制面
+	registerUISurface(r, h)    // / 与 /ws/ui 呈现与推送
+
+	return r
+}
+
+func wireHandlers(d Deps) handlers {
 	deviceLogic := logic.NewDeviceLogic(d.Store, d.Hub, d.Commands, d.Accounts, d.Egress, d.Policy)
 	egressLogic := logic.NewEgressLogic(d.Store, d.Hub, d.Accounts, d.Egress)
 	gatewayLogic := logic.NewGatewayLogic(d.Store, d.Hub, d.UI, d.Caps, d.Accounts, d.Egress)
 
-	deviceH := handle.NewDeviceHandle(deviceLogic)
-	egressH := handle.NewEgressHandle(egressLogic)
-	webH := handle.NewWebHandle()
-	gwWSH := handle.NewGatewayWSHandle(gatewayLogic, d.Hub)
-	uiWSH := handle.NewUIWSHandle(d.UI)
-
-	r.GET("/", webH.Index)
-	r.GET("/api/devices", deviceH.ListDevices)
-	r.GET("/api/devices/:id", deviceH.GetDevice)
-	r.POST("/api/devices/:id/commands", deviceH.SendCommand)
-	r.GET("/api/commands/:cmd_id", deviceH.GetCommand)
-	r.POST("/api/egress", egressH.Upsert)
-	r.GET("/api/egress", egressH.ListEgress)
-	r.POST("/api/accounts", egressH.UpsertAccount)
-	r.GET("/api/accounts", egressH.ListAccounts)
-	r.POST("/api/accounts/:id/egress", egressH.BindEgress)
-	r.GET("/ws/gateway", gwWSH.Serve)
-	r.GET("/ws/ui", uiWSH.Serve)
-
-	return r
+	return handlers{
+		device:  handle.NewDeviceHandle(deviceLogic),
+		egress:  handle.NewEgressHandle(egressLogic),
+		web:     handle.NewWebHandle(),
+		gateway: handle.NewGatewayWSHandle(gatewayLogic, d.Hub),
+		ui:      handle.NewUIWSHandle(d.UI),
+	}
 }

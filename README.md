@@ -6,6 +6,7 @@
 
 - Go 1.22+
 - `protoc` + `protoc-gen-go`
+- 仓库根目录有 `go.work`（三模块工作区）。用 Cursor/VS Code 打开**仓库根** `test/`，gopls 才能正确解析 `saas-service` 等包；若仍爆红：先 `.\scripts\gen-proto.ps1`，再命令面板 “Go: Restart Language Server”。
 
 ## 生成证书
 
@@ -68,12 +69,16 @@ identity/config → gateway_id 与启动参数
 
 ```
 cmd/saas-service → 组装启动
-router           → Gin 路由
-handle           → HTTP / WS 入口
-logic            → 设备、异步指令、Gateway 上行
-gatewayhub       → Gateway 连接与指令等待
-store            → 设备 / 指令内存表
-common/response · errors · uievent
+router
+  business.go  → /api/* 业务 REST（设备/指令/账号/出口）
+  control.go   → /ws/gateway 网络控制面（仅 Gateway）
+  ui.go        → / 与 /ws/ui（演示页 + 浏览器推送）
+handle         → HTTP / WS 入口
+logic          → 设备、异步指令、出口绑定、Gateway 上行
+gatewayhub     → Gateway 连接与指令等待
+store          → 设备 / 指令 / 账号 / 出口 / capability
+policy         → 发令前 Allow/Deny
+common/response · errors · uievent · cloudwire
 ```
 
 Gateway↔SaaS 的 `type` 定义在 `proto/cloud/v1` 的 `MsgType` 枚举；线网字符串由生成代码的

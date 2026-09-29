@@ -15,12 +15,12 @@ import (
 
 // GatewayLogic 处理 Gateway → SaaS 的上行 WSS 消息。
 type GatewayLogic struct {
-	Store    *store.Store
-	Hub      *gatewayhub.Hub
-	UI       *UIHub
-	Caps     *store.CapabilityStore
-	Accounts *store.AccountStore
-	Egress   *store.EgressStore
+	Store    *store.Store           // 写设备注册/心跳/离线
+	Hub      *gatewayhub.Hub        // command_result 时 Complete 等待方；OnEvent 转 UI
+	UI       *UIHub                 // 设备变更、风险事件推浏览器
+	Caps     *store.CapabilityStore // 收 capability：记下板子支持哪些 action
+	Accounts *store.AccountStore    // 收风险 event：改账号 tier（restricted/dead）
+	Egress   *store.EgressStore     // 收 egress.unhealthy：标记代理线路不健康
 }
 
 func NewGatewayLogic(st *store.Store, hub *gatewayhub.Hub, ui *UIHub, caps *store.CapabilityStore, accounts *store.AccountStore, egress *store.EgressStore) *GatewayLogic {
@@ -81,7 +81,7 @@ func (l *GatewayLogic) HandleMessage(typ string, payload json.RawMessage) (gatew
 
 	case cloudv1.MsgType_MSG_TYPE_CAPABILITY:
 		var p struct {
-			DeviceID string `json:"device_id"`
+			DeviceID string                  `json:"device_id"`
 			Entries  []store.CapabilityEntry `json:"entries"`
 		}
 		if err := json.Unmarshal(payload, &p); err != nil || p.DeviceID == "" {

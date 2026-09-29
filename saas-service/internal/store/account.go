@@ -12,23 +12,23 @@ var (
 )
 
 const (
-	TierNew        = "new"
-	TierWarming    = "warming"
-	TierNormal     = "normal"
-	TierRestricted = "restricted"
-	TierDead       = "dead"
+	TierNew        = "new"        // 新号：几乎只许安全动作
+	TierWarming    = "warming"    // 养号中
+	TierNormal     = "normal"     // 正常运营
+	TierRestricted = "restricted" // 风控限制（challenge / 限流等）
+	TierDead       = "dead"       // 会话失效等，禁止业务下发
 )
 
-// Account binds a chat/app identity to a device and optional egress.
+// Account 聊天账号画像：挂在哪台设备、走哪条出口、当前风控档。
 type Account struct {
 	ID       string `json:"id"`
-	App      string `json:"app"`
-	DeviceID string `json:"device_id"`
-	EgressID string `json:"egress_id"`
+	App      string `json:"app"`       // 如 tg / wa
+	DeviceID string `json:"device_id"` // 宿主板子
+	EgressID string `json:"egress_id"` // 绑定的代理线路；空表示未绑出口
 	Tier     string `json:"tier"`
 }
 
-// AccountStore holds in-memory account records.
+// AccountStore 进程内账号表（绑定出口须经 BindEgress，且要求线路 healthy）。
 type AccountStore struct {
 	mu   sync.RWMutex
 	byID map[string]*Account

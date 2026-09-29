@@ -15,9 +15,9 @@ import (
 // Hub 管理 Gateway WSS 与待完成指令。
 type Hub struct {
 	mu       sync.Mutex
-	gateways map[string]*websocket.Conn
-	pending  map[string]chan CommandResult
-	OnEvent  func(eventType string, payload any)
+	gateways map[string]*websocket.Conn          // gateway_id → 当前连接
+	pending  map[string]chan CommandResult       // cmd_id → 等待板子回执
+	OnEvent  func(eventType string, payload any) // 通常接到 UIHub.Broadcast（如 command_result）
 }
 
 type CommandResult struct {

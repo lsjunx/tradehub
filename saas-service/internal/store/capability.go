@@ -2,13 +2,14 @@ package store
 
 import "sync"
 
-// CapabilityEntry is one action the board advertises for a device.
+// CapabilityEntry 板子声明的一项可执行能力（action + 风险提示）。
 type CapabilityEntry struct {
 	Action   string `json:"action"`
-	RiskHint string `json:"risk_hint"`
+	RiskHint string `json:"risk_hint"` // safe | sensitive | high（仅提示，门禁以 Policy 目录为准）
 }
 
-// CapabilityStore holds the latest capability snapshot per device.
+// CapabilityStore 按 device_id 保存板子最近一次上报的 capability。
+// 用于面板显隐按钮、后续「只允许已声明 action」等；由 Gateway 上行写入。
 type CapabilityStore struct {
 	mu       sync.RWMutex
 	byDevice map[string][]CapabilityEntry

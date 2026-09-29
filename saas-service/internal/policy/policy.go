@@ -1,3 +1,5 @@
+// Package policy 在指令真正发往 Gateway 之前做 Allow/Deny。
+// 目录见 catalog.go；账号档与出口健康来自 store。
 package policy
 
 import (
@@ -6,14 +8,14 @@ import (
 	"github.com/local/saas-service/internal/store"
 )
 
-// Decision is the outcome of a policy check.
+// Decision 策略结果；Delay 预留错峰排队（foundation 阶段尚未使用）。
 type Decision struct {
 	Allow  bool
 	Delay  time.Duration
-	Reason string
+	Reason string // 拒绝时的原因码，原样返回给 API（如 egress_required）
 }
 
-// Policy evaluates command actions against account and egress state.
+// Policy 无状态校验器；具体规则在 Check / catalog 中。
 type Policy struct{}
 
 func New() *Policy {

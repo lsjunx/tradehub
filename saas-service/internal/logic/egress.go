@@ -15,12 +15,13 @@ type egressCommandHub interface {
 	SendJSON(gatewayID string, typ string, payload any) error
 }
 
-// EgressLogic manages the egress pool, account binding, and board push.
+// EgressLogic 管理代理池、账号绑定出口，并在设备在线时向板子推送 egress.apply。
+// 聊天业务流量不经本服务；此处只下发「用哪条代理」的配置。
 type EgressLogic struct {
-	Store    *store.Store
-	Hub      egressCommandHub
-	Accounts *store.AccountStore
-	Egress   *store.EgressStore
+	Store    *store.Store        // 查账号对应设备是否在线、Gateway 是谁
+	Hub      egressCommandHub    // 向 Gateway 发 type=command、action=egress.apply
+	Accounts *store.AccountStore // 账号 ↔ egress_id 绑定
+	Egress   *store.EgressStore  // 代理池（proxy_url、healthy）
 }
 
 func NewEgressLogic(
