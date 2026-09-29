@@ -5,7 +5,7 @@ certs/*.pem
 certs/*.srl
 !certs/generate.ps1
 !certs/generate.sh
-**/internal/pb/
+#**/internal/pb/
 *.exe
 .superpowers/
 
