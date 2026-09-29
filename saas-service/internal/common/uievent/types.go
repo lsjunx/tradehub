@@ -1,7 +1,7 @@
 // Package uievent 定义浏览器 /ws/ui 事件 type（与 Gateway 线网 type 分开）。
 package uievent
 
-import "github.com/local/saas-service/internal/common/cloudwire"
+import "github.com/tradehub/saas-service/internal/common/cloudwire"
 
 const (
 	// DeviceUpdated 设备快照变更（注册/心跳降频/离线）。

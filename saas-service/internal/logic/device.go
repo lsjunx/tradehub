@@ -8,12 +8,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/local/saas-service/internal/common/cloudwire"
-	bizerr "github.com/local/saas-service/internal/common/errors"
-	"github.com/local/saas-service/internal/common/uievent"
-	"github.com/local/saas-service/internal/gatewayhub"
-	"github.com/local/saas-service/internal/policy"
-	"github.com/local/saas-service/internal/store"
+	"github.com/tradehub/saas-service/internal/common/cloudwire"
+	bizerr "github.com/tradehub/saas-service/internal/common/errors"
+	"github.com/tradehub/saas-service/internal/common/uievent"
+	"github.com/tradehub/saas-service/internal/gatewayhub"
+	"github.com/tradehub/saas-service/internal/policy"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 const commandWaitTimeout = 10 * time.Second

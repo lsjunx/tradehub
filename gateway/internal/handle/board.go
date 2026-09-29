@@ -9,9 +9,9 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/local/gateway/internal/frame"
-	"github.com/local/gateway/internal/logic"
-	boardv1 "github.com/local/gateway/internal/pb/board/v1"
+	"github.com/tradehub/gateway/internal/frame"
+	"github.com/tradehub/gateway/internal/logic"
+	boardv1 "github.com/tradehub/gateway/internal/pb/board/v1"
 )
 
 // BoardServer Board 侧 TLS 服务端。

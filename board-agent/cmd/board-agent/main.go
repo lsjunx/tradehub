@@ -11,8 +11,8 @@ package main
 import (
 	"log"
 
-	"github.com/local/board-agent/internal/config"
-	"github.com/local/board-agent/internal/handle"
+	"github.com/tradehub/board-agent/internal/config"
+	"github.com/tradehub/board-agent/internal/handle"
 )
 
 func main() {

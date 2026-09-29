@@ -3,8 +3,8 @@ package policy_test
 import (
 	"testing"
 
-	"github.com/local/saas-service/internal/policy"
-	"github.com/local/saas-service/internal/store"
+	"github.com/tradehub/saas-service/internal/policy"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 func TestDenyDeadAccount(t *testing.T) {

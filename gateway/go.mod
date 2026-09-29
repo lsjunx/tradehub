@@ -1,4 +1,4 @@
-module github.com/local/gateway
+module github.com/tradehub/gateway
 
 go 1.24.13
 

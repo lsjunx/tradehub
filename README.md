@@ -1,4 +1,4 @@
-# SaaS / Gateway / Board-Agent
+# TradeHub
 
 三个独立 Go 服务：云端 `saas-service`、本地 `gateway`、板端 `board-agent`。共享仅 `proto/`。
 
@@ -6,7 +6,7 @@
 
 - Go 1.22+
 - `protoc` + `protoc-gen-go`
-- 仓库根目录有 `go.work`（三模块工作区）。用 Cursor/VS Code 打开**仓库根** `test/`，gopls 才能正确解析 `saas-service` 等包；若仍爆红：先 `.\scripts\gen-proto.ps1`，再命令面板 “Go: Restart Language Server”。
+- 仓库根目录有 `go.work`（三模块工作区）。用 Cursor/VS Code 打开**仓库根** `tradehub/`，gopls 才能正确解析 `saas-service` 等包；若仍爆红：先 `.\scripts\gen-proto.ps1`，再命令面板 “Go: Restart Language Server”。
 
 ## 生成证书
 

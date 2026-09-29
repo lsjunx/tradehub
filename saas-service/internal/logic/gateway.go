@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	cloudv1 "github.com/local/saas-service/internal/pb/cloud/v1"
+	cloudv1 "github.com/tradehub/saas-service/internal/pb/cloud/v1"
 
-	"github.com/local/saas-service/internal/common/cloudwire"
-	"github.com/local/saas-service/internal/common/uievent"
-	"github.com/local/saas-service/internal/gatewayhub"
-	"github.com/local/saas-service/internal/store"
+	"github.com/tradehub/saas-service/internal/common/cloudwire"
+	"github.com/tradehub/saas-service/internal/common/uievent"
+	"github.com/tradehub/saas-service/internal/gatewayhub"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 // GatewayLogic 处理 Gateway → SaaS 的上行 WSS 消息。

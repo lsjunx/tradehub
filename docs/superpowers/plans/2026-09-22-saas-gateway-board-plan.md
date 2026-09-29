@@ -111,9 +111,9 @@ certs/*.srl
 
 ```bash
 mkdir saas-service gateway board-agent
-cd saas-service && go mod init github.com/local/saas-service && cd ..
-cd gateway && go mod init github.com/local/gateway && cd ..
-cd board-agent && go mod init github.com/local/board-agent && cd ..
+cd saas-service && go mod init github.com/tradehub/saas-service && cd ..
+cd gateway && go mod init github.com/tradehub/gateway && cd ..
+cd board-agent && go mod init github.com/tradehub/board-agent && cd ..
 ```
 
 - [ ] **Step 3: 编写 certs/generate.ps1**
@@ -172,7 +172,7 @@ git commit -m "chore: scaffold three Go modules and cert scripts"
 ```protobuf
 syntax = "proto3";
 package board.v1;
-option go_package = "github.com/local/board-agent/internal/pb/board/v1;boardv1";
+option go_package = "github.com/tradehub/board-agent/internal/pb/board/v1;boardv1";
 
 message Envelope {
   string msg_id = 1;
@@ -220,7 +220,7 @@ message CommandResult {
 ```protobuf
 syntax = "proto3";
 package cloud.v1;
-option go_package = "github.com/local/saas-service/internal/pb/cloud/v1;cloudv1";
+option go_package = "github.com/tradehub/saas-service/internal/pb/cloud/v1;cloudv1";
 
 // WSS JSON 信封：{"type":"...","payload":{...}}
 // type 取值与下列消息名对应（snake）：gateway_hello, device_register, ...

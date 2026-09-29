@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/local/saas-service/internal/common/uievent"
+	"github.com/tradehub/saas-service/internal/common/uievent"
 )
 
 type stubPayload struct {

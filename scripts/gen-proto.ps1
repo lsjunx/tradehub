@@ -15,8 +15,8 @@ Ensure-Dir "board-agent/internal/pb/board/v1"
 protoc `
   --proto_path=proto `
   --go_out=board-agent `
-  --go_opt=module=github.com/local/board-agent `
-  --go_opt=Mboard/v1/messages.proto=github.com/local/board-agent/internal/pb/board/v1 `
+  --go_opt=module=github.com/tradehub/board-agent `
+  --go_opt=Mboard/v1/messages.proto=github.com/tradehub/board-agent/internal/pb/board/v1 `
   board/v1/messages.proto
 
 # gateway: board + cloud
@@ -25,14 +25,14 @@ Ensure-Dir "gateway/internal/pb/cloud/v1"
 protoc `
   --proto_path=proto `
   --go_out=gateway `
-  --go_opt=module=github.com/local/gateway `
-  --go_opt=Mboard/v1/messages.proto=github.com/local/gateway/internal/pb/board/v1 `
+  --go_opt=module=github.com/tradehub/gateway `
+  --go_opt=Mboard/v1/messages.proto=github.com/tradehub/gateway/internal/pb/board/v1 `
   board/v1/messages.proto
 protoc `
   --proto_path=proto `
   --go_out=gateway `
-  --go_opt=module=github.com/local/gateway `
-  --go_opt=Mcloud/v1/messages.proto=github.com/local/gateway/internal/pb/cloud/v1 `
+  --go_opt=module=github.com/tradehub/gateway `
+  --go_opt=Mcloud/v1/messages.proto=github.com/tradehub/gateway/internal/pb/cloud/v1 `
   cloud/v1/messages.proto
 Remove-Item -Force -ErrorAction SilentlyContinue "gateway/internal/pb/cloud/v1/wire_types.go"
 
@@ -41,8 +41,8 @@ Ensure-Dir "saas-service/internal/pb/cloud/v1"
 protoc `
   --proto_path=proto `
   --go_out=saas-service `
-  --go_opt=module=github.com/local/saas-service `
-  --go_opt=Mcloud/v1/messages.proto=github.com/local/saas-service/internal/pb/cloud/v1 `
+  --go_opt=module=github.com/tradehub/saas-service `
+  --go_opt=Mcloud/v1/messages.proto=github.com/tradehub/saas-service/internal/pb/cloud/v1 `
   cloud/v1/messages.proto
 Remove-Item -Force -ErrorAction SilentlyContinue "saas-service/internal/pb/cloud/v1/wire_types.go"
 

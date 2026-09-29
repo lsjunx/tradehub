@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	bizerr "github.com/local/saas-service/internal/common/errors"
+	bizerr "github.com/tradehub/saas-service/internal/common/errors"
 )
 
 // Body 统一 REST 返回结构。

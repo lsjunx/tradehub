@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/local/board-agent/internal/egress"
-	boardv1 "github.com/local/board-agent/internal/pb/board/v1"
+	"github.com/tradehub/board-agent/internal/egress"
+	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
 )
 
 // EgressPlugin handles SaaS-pushed proxy bindings (egress.apply / egress.clear).

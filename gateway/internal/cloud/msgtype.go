@@ -3,7 +3,7 @@ package cloud
 import (
 	"strings"
 
-	cloudv1 "github.com/local/gateway/internal/pb/cloud/v1"
+	cloudv1 "github.com/tradehub/gateway/internal/pb/cloud/v1"
 )
 
 // 线网 type 由 MsgType 枚举名推导：MSG_TYPE_GATEWAY_HELLO → gateway_hello。

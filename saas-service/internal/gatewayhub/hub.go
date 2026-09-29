@@ -9,7 +9,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/local/saas-service/internal/common/uievent"
+	"github.com/tradehub/saas-service/internal/common/uievent"
 )
 
 // Hub 管理 Gateway WSS 与待完成指令。

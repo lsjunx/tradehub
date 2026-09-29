@@ -3,7 +3,7 @@ package egress_test
 import (
 	"testing"
 
-	"github.com/local/board-agent/internal/egress"
+	"github.com/tradehub/board-agent/internal/egress"
 )
 
 func TestApplyAndGet(t *testing.T) {

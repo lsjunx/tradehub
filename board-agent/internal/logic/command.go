@@ -4,8 +4,8 @@ package logic
 import (
 	"log"
 
-	"github.com/local/board-agent/internal/egress"
-	boardv1 "github.com/local/board-agent/internal/pb/board/v1"
+	"github.com/tradehub/board-agent/internal/egress"
+	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
 )
 
 // EgressStore holds per-account proxy config applied via egress.apply (MVP in-memory).

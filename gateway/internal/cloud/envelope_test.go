@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	cloudv1 "github.com/local/gateway/internal/pb/cloud/v1"
+	cloudv1 "github.com/tradehub/gateway/internal/pb/cloud/v1"
 )
 
 func TestEnvelopeRoundTrip(t *testing.T) {

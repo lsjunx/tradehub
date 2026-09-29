@@ -5,7 +5,7 @@ package policy
 import (
 	"time"
 
-	"github.com/local/saas-service/internal/store"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 // Decision 策略结果；Delay 预留错峰排队（foundation 阶段尚未使用）。

@@ -4,7 +4,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 
-	"github.com/local/saas-service/internal/logic"
+	"github.com/tradehub/saas-service/internal/logic"
 )
 
 // UIWSHandle 浏览器事件订阅。

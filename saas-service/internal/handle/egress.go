@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/local/saas-service/internal/common/response"
-	"github.com/local/saas-service/internal/logic"
+	"github.com/tradehub/saas-service/internal/common/response"
+	"github.com/tradehub/saas-service/internal/logic"
 )
 
 // EgressHandle egress pool and account binding REST.

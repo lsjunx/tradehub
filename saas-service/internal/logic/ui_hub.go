@@ -8,7 +8,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/local/saas-service/internal/common/response"
+	"github.com/tradehub/saas-service/internal/common/response"
 )
 
 // UIHub 向浏览器 /ws/ui 推送事件。

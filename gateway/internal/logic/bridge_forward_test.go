@@ -3,9 +3,9 @@ package logic
 import (
 	"testing"
 
-	"github.com/local/gateway/internal/cloud"
-	boardv1 "github.com/local/gateway/internal/pb/board/v1"
-	"github.com/local/gateway/internal/session"
+	"github.com/tradehub/gateway/internal/cloud"
+	boardv1 "github.com/tradehub/gateway/internal/pb/board/v1"
+	"github.com/tradehub/gateway/internal/session"
 )
 
 type fakeCloud struct {

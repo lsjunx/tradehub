@@ -9,10 +9,10 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/local/gateway/internal/cloud"
-	"github.com/local/gateway/internal/frame"
-	boardv1 "github.com/local/gateway/internal/pb/board/v1"
-	"github.com/local/gateway/internal/session"
+	"github.com/tradehub/gateway/internal/cloud"
+	"github.com/tradehub/gateway/internal/frame"
+	boardv1 "github.com/tradehub/gateway/internal/pb/board/v1"
+	"github.com/tradehub/gateway/internal/session"
 )
 
 // CloudSender 向 SaaS 上报上行消息（便于测试注入 fake）。

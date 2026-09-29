@@ -15,13 +15,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/local/saas-service/internal/common/uievent"
-	"github.com/local/saas-service/internal/config"
-	"github.com/local/saas-service/internal/gatewayhub"
-	"github.com/local/saas-service/internal/logic"
-	"github.com/local/saas-service/internal/policy"
-	"github.com/local/saas-service/internal/router"
-	"github.com/local/saas-service/internal/store"
+	"github.com/tradehub/saas-service/internal/common/uievent"
+	"github.com/tradehub/saas-service/internal/config"
+	"github.com/tradehub/saas-service/internal/gatewayhub"
+	"github.com/tradehub/saas-service/internal/logic"
+	"github.com/tradehub/saas-service/internal/policy"
+	"github.com/tradehub/saas-service/internal/router"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 func main() {

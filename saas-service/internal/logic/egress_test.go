@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	bizerr "github.com/local/saas-service/internal/common/errors"
-	"github.com/local/saas-service/internal/store"
+	bizerr "github.com/tradehub/saas-service/internal/common/errors"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 type fakeEgressHub struct {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/local/saas-service/internal/common/cloudwire"
-	bizerr "github.com/local/saas-service/internal/common/errors"
-	"github.com/local/saas-service/internal/store"
+	"github.com/tradehub/saas-service/internal/common/cloudwire"
+	bizerr "github.com/tradehub/saas-service/internal/common/errors"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 type egressCommandHub interface {

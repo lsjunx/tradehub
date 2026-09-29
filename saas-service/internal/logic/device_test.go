@@ -10,10 +10,10 @@ import (
 
 	"github.com/coder/websocket"
 
-	bizerr "github.com/local/saas-service/internal/common/errors"
-	"github.com/local/saas-service/internal/gatewayhub"
-	"github.com/local/saas-service/internal/policy"
-	"github.com/local/saas-service/internal/store"
+	bizerr "github.com/tradehub/saas-service/internal/common/errors"
+	"github.com/tradehub/saas-service/internal/gatewayhub"
+	"github.com/tradehub/saas-service/internal/policy"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 func newTestDeviceLogic(t *testing.T, gatewayID string) (*DeviceLogic, *store.AccountStore) {

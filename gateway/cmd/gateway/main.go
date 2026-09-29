@@ -15,12 +15,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/local/gateway/internal/cloud"
-	"github.com/local/gateway/internal/config"
-	"github.com/local/gateway/internal/handle"
-	"github.com/local/gateway/internal/identity"
-	"github.com/local/gateway/internal/logic"
-	"github.com/local/gateway/internal/session"
+	"github.com/tradehub/gateway/internal/cloud"
+	"github.com/tradehub/gateway/internal/config"
+	"github.com/tradehub/gateway/internal/handle"
+	"github.com/tradehub/gateway/internal/identity"
+	"github.com/tradehub/gateway/internal/logic"
+	"github.com/tradehub/gateway/internal/session"
 )
 
 func main() {

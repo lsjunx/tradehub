@@ -3,8 +3,8 @@ package logic_test
 import (
 	"testing"
 
-	"github.com/local/board-agent/internal/logic"
-	boardv1 "github.com/local/board-agent/internal/pb/board/v1"
+	"github.com/tradehub/board-agent/internal/logic"
+	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
 )
 
 func TestRouterEcho(t *testing.T) {

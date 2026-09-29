@@ -6,8 +6,8 @@ import (
 	"github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 
-	"github.com/local/saas-service/internal/gatewayhub"
-	"github.com/local/saas-service/internal/logic"
+	"github.com/tradehub/saas-service/internal/gatewayhub"
+	"github.com/tradehub/saas-service/internal/logic"
 )
 
 // GatewayWSHandle Gateway 长连接入口。

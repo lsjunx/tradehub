@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/local/saas-service/internal/common/response"
-	"github.com/local/saas-service/internal/logic"
+	"github.com/tradehub/saas-service/internal/common/response"
+	"github.com/tradehub/saas-service/internal/logic"
 )
 
 // DeviceHandle 设备相关 HTTP 接口。

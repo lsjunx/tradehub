@@ -3,7 +3,7 @@ package logic
 import (
 	"sync"
 
-	boardv1 "github.com/local/board-agent/internal/pb/board/v1"
+	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
 )
 
 var (

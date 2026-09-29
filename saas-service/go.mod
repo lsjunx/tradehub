@@ -1,4 +1,4 @@
-module github.com/local/saas-service
+module github.com/tradehub/saas-service
 
 go 1.24.13
 

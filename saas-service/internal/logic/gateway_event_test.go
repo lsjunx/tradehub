@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/local/saas-service/internal/common/cloudwire"
-	"github.com/local/saas-service/internal/gatewayhub"
-	"github.com/local/saas-service/internal/store"
+	"github.com/tradehub/saas-service/internal/common/cloudwire"
+	"github.com/tradehub/saas-service/internal/gatewayhub"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 func TestHandleMessage_CapabilityStoresEntries(t *testing.T) {

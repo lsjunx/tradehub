@@ -10,11 +10,11 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/local/saas-service/internal/gatewayhub"
-	"github.com/local/saas-service/internal/handle"
-	"github.com/local/saas-service/internal/logic"
-	"github.com/local/saas-service/internal/policy"
-	"github.com/local/saas-service/internal/store"
+	"github.com/tradehub/saas-service/internal/gatewayhub"
+	"github.com/tradehub/saas-service/internal/handle"
+	"github.com/tradehub/saas-service/internal/logic"
+	"github.com/tradehub/saas-service/internal/policy"
+	"github.com/tradehub/saas-service/internal/store"
 )
 
 // Deps 由 main 注入的共享依赖（各 Logic 按需取用）。

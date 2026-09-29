@@ -209,7 +209,7 @@ package logic
 import (
 	"testing"
 
-	boardv1 "github.com/local/gateway/internal/pb/board/v1"
+	boardv1 "github.com/tradehub/gateway/internal/pb/board/v1"
 )
 
 type fakeCloud struct {
@@ -329,8 +329,8 @@ package logic_test
 import (
 	"testing"
 
-	"github.com/local/board-agent/internal/logic"
-	boardv1 "github.com/local/board-agent/internal/pb/board/v1"
+	"github.com/tradehub/board-agent/internal/logic"
+	boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
 )
 
 func TestRouterEcho(t *testing.T) {
@@ -362,7 +362,7 @@ Expected: FAIL (`NewRouter` undefined)
 ```go
 package logic
 
-import boardv1 "github.com/local/board-agent/internal/pb/board/v1"
+import boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
 
 type Plugin interface {
 	Actions() []string
@@ -419,7 +419,7 @@ func (r *Router) CapabilityEntries() []*boardv1.CapabilityEntry {
 ```go
 package logic
 
-import boardv1 "github.com/local/board-agent/internal/pb/board/v1"
+import boardv1 "github.com/tradehub/board-agent/internal/pb/board/v1"
 
 type EchoPlugin struct{}
 
@@ -496,7 +496,7 @@ package egress_test
 import (
 	"testing"
 
-	"github.com/local/board-agent/internal/egress"
+	"github.com/tradehub/board-agent/internal/egress"
 )
 
 func TestApplyAndGet(t *testing.T) {
