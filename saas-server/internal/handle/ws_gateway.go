@@ -6,7 +6,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 
-	"saas-server/internal/gatewayhub"
+	"saas-server/internal/common/gatewayhub"
 	"saas-server/internal/logic"
 )
 

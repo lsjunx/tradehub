@@ -10,8 +10,8 @@ import (
 
 	"saas-server/internal/common/cloudwire"
 	bizerr "saas-server/internal/common/errors"
+	"saas-server/internal/common/gatewayhub"
 	"saas-server/internal/common/uievent"
-	"saas-server/internal/gatewayhub"
 	"saas-server/internal/policy"
 	"saas-server/internal/store"
 )

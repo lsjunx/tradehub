@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"saas-server/internal/common/cloudwire"
-	"saas-server/internal/gatewayhub"
+	"saas-server/internal/common/gatewayhub"
 	"saas-server/internal/store"
 )
 

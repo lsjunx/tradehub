@@ -7,7 +7,7 @@ import (
 )
 
 // 线网 type 由 MsgType 枚举名推导：MSG_TYPE_GATEWAY_HELLO → gateway_hello。
-// 与 gateway/internal/cloud 保持同一规则；增删枚举只改 proto。
+// 与 gateway/internal/common/cloud 保持同一规则；增删枚举只改 proto。
 var (
 	TypeGatewayHello    = TypeName(cloudv1.MsgType_MSG_TYPE_GATEWAY_HELLO)
 	TypeDeviceRegister  = TypeName(cloudv1.MsgType_MSG_TYPE_DEVICE_REGISTER)

@@ -10,7 +10,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
-	"saas-server/internal/gatewayhub"
+	"saas-server/internal/common/gatewayhub"
 	"saas-server/internal/handle"
 	"saas-server/internal/logic"
 	"saas-server/internal/policy"

@@ -5,19 +5,18 @@
 //	router       → Gin 路由注册与依赖组装
 //	handle       → HTTP / WS 入口（薄）
 //	logic        → 设备、指令、出口绑定、Gateway 上行、UI 推送
-//	gatewayhub   → Gateway 长连接表与指令等待 channel
 //	store        → 设备 / 指令 / 账号 / 出口池 / 能力声明（内存）
 //	policy       → 下发前 Allow/Deny（动作目录 + 账号档 + 出口健康）
-//	common/*     → REST/WS 包体、业务错误、线网 type、UI 事件名
+//	common/*     → REST/WS 包体、业务错误、线网 type、UI 事件名、Gateway 连接表
 package main
 
 import (
 	"log"
 	"time"
 
+	"saas-server/internal/common/gatewayhub"
 	"saas-server/internal/common/uievent"
 	"saas-server/internal/config"
-	"saas-server/internal/gatewayhub"
 	"saas-server/internal/logic"
 	"saas-server/internal/policy"
 	"saas-server/internal/router"

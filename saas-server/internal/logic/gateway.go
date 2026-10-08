@@ -8,8 +8,8 @@ import (
 	cloudv1 "saas-server/internal/pb/cloud/v1"
 
 	"saas-server/internal/common/cloudwire"
+	"saas-server/internal/common/gatewayhub"
 	"saas-server/internal/common/uievent"
-	"saas-server/internal/gatewayhub"
 	"saas-server/internal/store"
 )
 

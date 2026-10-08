@@ -25,7 +25,7 @@
 ## 3. 总体架构
 
 ```
-浏览器 ──HTTPS/WSS──► saas-service（云端）
+浏览器 ──HTTPS/WSS──► saas-server（云端）
                           ▲
                           │ WSS（Gateway 主动连云）
                           │
@@ -56,7 +56,7 @@ Board  ──protobuf──►  Gateway  ──JSON──►  Cloud  ──JSON�
 
 | 服务 | 端口 | 协议 |
 |------|------|------|
-| saas-service | `8443` | HTTPS + WSS（同端口） |
+| saas-server | `8443` | HTTPS + WSS（同端口） |
 | gateway → 云端 | 客户端 | `wss://<saas>:8443/ws/gateway` |
 | gateway ← Board | `9443` | TCP + TLS，帧内 Protobuf |
 | board-agent | 无对外业务监听 | TLS 客户端；REGISTER 中上报本机 IP 与配置端口（可为 `0`） |
@@ -151,7 +151,7 @@ type BoardConnection struct {
   2. **仅当** map 中当前条目与该连接为同一会话时，才 `delete` 并通知 Cloud `DEVICE_OFFLINE`
   3. 若 map 中已是更新的连接（重连后的新 Session），则忽略此次断开，不删 map、不报离线
 
-### 5.3 saas-service
+### 5.3 saas-server
 
 - 内存表：
   - `gateways[gateway_id]`：WS 连接
@@ -179,36 +179,49 @@ type BoardConnection struct {
 ## 8. 目录结构
 
 ```
-test/
+tradehub/
 ├── proto/
 │   ├── board/v1/
 │   └── cloud/v1/
 ├── certs/
 │   ├── generate.ps1
 │   └── generate.sh
+├── scripts/
+│   └── gen-proto.ps1 / .sh
 ├── saas-server/
 │   ├── go.mod
 │   ├── cmd/saas-server/
-│   ├── internal/
-│   └── web/
+│   └── internal/
+│       ├── handle/ · logic/ · router/ · store/ · policy/
+│       ├── common/   → response · errors · uievent · cloudwire · gatewayhub
+│       └── config/ · pb/
 ├── gateway/
 │   ├── go.mod
 │   ├── cmd/gateway/
 │   └── internal/
+│       ├── handle/ · logic/
+│       ├── common/   → cloud · session · frame · identity
+│       └── config/ · pb/
 ├── board-agent/
 │   ├── go.mod
 │   ├── cmd/board-agent/
 │   └── internal/
+│       ├── handle/ · logic/
+│       ├── common/   → frame · identity · netinfo · egress
+│       └── config/ · pb/
 ├── docs/superpowers/specs/
+├── go.work
 └── README.md
 ```
 
 ### Module 约定
 
-- 三个服务各自 `go.mod`，不互相 require 业务包
+- 三个服务各自 `go.mod`，不互相 require 业务包；跨服务共享仅 `proto/`
+- 各服务 `internal/common` 仅本进程复用（帧、身份、线网 type、响应包体等），**不是**跨模块公共库
+- 统一边界：`handle`（I/O）→ `logic`（编排）→ `common`（基础设施）；saas 另有领域包 `store` / `policy`
 - `board-agent` / `gateway` 从 `proto/board/v1` 生成本地 `internal/pb/`
-- `gateway` / `saas-server` 从 `proto/cloud/v1` 生成本地 `internal/pb/`（或等价 Go struct）；`saas-server/web` 只消费 REST/WS JSON
-- 配置：命令行 flag 或简单 YAML（`saas_addr`、`listen`、`cert`、`key`、`heartbeat_interval`、`mode`）
+- `gateway` / `saas-server` 从 `proto/cloud/v1` 生成本地 `internal/pb/`
+- 配置：命令行 flag（`saas_addr`、`listen`、`cert`、`key`、`heartbeat_interval`、`mode`）
 
 ## 9. 非目标（第一版不做）
 
@@ -222,7 +235,7 @@ test/
 
 1. 生成自签证书  
 2. 生成 protobuf 代码  
-3. 启动 saas-service → gateway → 1~N 个 board-agent  
+3. 启动 saas-server → gateway → 1~N 个 board-agent  
 4. 浏览器打开 `https://localhost:8443`（信任自签）查看设备并发 `echo`  
 5. 或用 `curl -k` 调用 REST  
 

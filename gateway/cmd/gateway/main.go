@@ -2,11 +2,10 @@
 //
 // 分层：
 //
-//	handle  → Board TLS 接入与读帧
-//	logic   → 上行/下行转发业务
-//	cloud   → SaaS WSS 客户端
-//	session → Board 会话表
-//	frame   → Board 二进制帧编解码
+//	handle       → Board TLS 接入与读帧（I/O 边界）
+//	logic        → 上行 Board→SaaS、下行 SaaS→Board 转发
+//	common/cloud · session · frame · identity → SaaS WSS 客户端、Board 会话表、帧编解码、gateway_id
+//	config       → 启动参数与 TLS 模式
 package main
 
 import (

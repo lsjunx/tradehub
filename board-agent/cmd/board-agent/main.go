@@ -2,10 +2,10 @@
 //
 // 分层：
 //
-//	handle  → TLS 连接 Gateway、收发帧
-//	logic   → 指令执行（echo 等）
-//	frame   → 二进制帧编解码
-//	identity / netinfo / config
+//	handle       → TLS 连接 Gateway、收发帧（I/O 边界）
+//	logic        → 指令执行 / Plugin Router（echo、egress.*）
+//	common/frame · identity · netinfo · egress → 帧编解码、设备 ID、网卡信息、本机出口缓存
+//	config       → 启动参数与 TLS 模式
 package main
 
 import (

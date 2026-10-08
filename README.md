@@ -1,6 +1,6 @@
 # TradeHub
 
-三个独立 Go 服务：云端 `saas-server`、本地 `gateway`、板端 `board-agent`。共享仅 `proto/`。
+三个独立 Go 服务：云端 `saas-server`、本地 `gateway`、板端 `board-agent`。跨服务共享仅 `proto/`；各服务内的 `internal/common` 是本进程基础设施，不是跨模块公共库。
 
 ## 前置
 
@@ -48,51 +48,73 @@ curl.exe -k https://127.0.0.1:8443/api/devices
 curl.exe -k -X POST https://127.0.0.1:8443/api/devices/<device_id>/commands -H "Content-Type: application/json" -d "{\"action\":\"echo\",\"args\":\"hello\"}"
 ```
 
+## 统一分层约定
+
+三服务同一套边界，便于对照：
+
+| 层 | 职责 |
+| --- | --- |
+| `cmd/` | 组装依赖、启动 |
+| `handle/` | I/O 边界（HTTP/WS/TLS 读写） |
+| `logic/` | 业务编排 |
+| `common/` | 本服务内可复用的基础设施（帧、身份、线网 type、响应包体等） |
+| `config/` | 启动参数与 TLS 模式校验 |
+| 其它顶层包 | 领域状态机，如 saas 的 `store`、`policy` |
+
+`common` 合理之处：把「非入口、非编排」的工具/协议收拢，避免 `internal/` 根目录包泛滥；同时不把跨服务代码塞进一个共享 Go module（协议仍以 `proto/` 为准）。
+
 ## gateway 分层
 
 ```
-cmd/gateway     → 组装依赖、启动 SaaS 读循环 + Board TLS
-handle          → Board TLS Accept / 读帧（I/O 边界）
-logic           → 上行 Board→SaaS、下行 SaaS→Board 转发
-cloud           → SaaS WSS 客户端（收 command、发 register/heartbeat/result）
-session         → Board 会话表（SessionID 防误删）
-frame           → Board 二进制帧编解码
-identity/config → gateway_id 与启动参数
+cmd/gateway
+handle          → Board TLS Accept / 读帧
+logic           → 上行 Board→SaaS、下行 SaaS→Board
+common/cloud    → SaaS WSS 客户端（收 command、发 register/heartbeat/result）
+common/session  → Board 会话表（SessionID 防误删）
+common/frame    → Board 二进制帧编解码
+common/identity → gateway_id 持久化
+config          → 启动参数
 ```
 
 关键入口：
 - 收 Board：`handle.BoardServer.serveConn`
-- 收 SaaS 指令：`cloud.Client.RunRead` → `logic.Bridge.HandleCloudCommand`
+- 收 SaaS 指令：`common/cloud.Client.RunRead` → `logic.Bridge.HandleCloudCommand`
 - Gateway **无查询 API**（查询在 SaaS REST）
 
-## saas-service 分层与前端契约
+## saas-server 分层与前端契约
 
 ```
-cmd/saas-service → 组装启动
+cmd/saas-server
 router
   business.go  → /api/* 业务 REST（设备/指令/账号/出口）
   control.go   → /ws/gateway 网络控制面（仅 Gateway）
   ui.go        → / 与 /ws/ui（演示页 + 浏览器推送）
-handle         → HTTP / WS 入口
-logic          → 设备、异步指令、出口绑定、Gateway 上行
-gatewayhub     → Gateway 连接与指令等待
+handle         → HTTP / WS 入口（薄）
+logic          → 设备、异步指令、出口绑定、Gateway 上行、UI 推送
 store          → 设备 / 指令 / 账号 / 出口 / capability
 policy         → 发令前 Allow/Deny
-common/response · errors · uievent · cloudwire
+common/response · errors · uievent · cloudwire · gatewayhub
+config         → 启动参数
 ```
 
 Gateway↔SaaS 的 `type` 定义在 `proto/cloud/v1` 的 `MsgType` 枚举；线网字符串由生成代码的
 `MsgType_name`/`MsgType_value` 推导（`MSG_TYPE_GATEWAY_HELLO` → `gateway_hello`），
-业务侧用各服务的 `TypeName`/`ParseType`，勿手写字面量。
+业务侧用各服务的 `TypeName`/`ParseType`（saas：`common/cloudwire`；gateway：`common/cloud`），勿手写字面量。
 
 ## board-agent 分层
 
 ```
-cmd/board-agent → 组装启动
-handle          → TLS 连 Gateway、收发帧
-logic           → 指令执行（新增 action 主要改这里）
-frame / identity / netinfo / config
+cmd/board-agent
+handle              → TLS 连 Gateway、收发帧
+logic               → Plugin Router / 指令执行（新增 action 主要改这里）
+common/frame        → 二进制帧编解码
+common/identity     → device_id
+common/netinfo      → 上报用网卡信息
+common/egress       → 本机出口配置缓存（egress.apply/clear）
+config              → 启动参数
 ```
+
+## REST / WS 契约（saas-server）
 
 **REST（真前端）**
 - `GET /api/devices` / `GET /api/devices/:id`
@@ -129,7 +151,7 @@ frame / identity / netinfo / config
 
 `POST .../commands` body 可选 `account_id`：除 `echo` 与 `egress.*` 外须带已注册账号并通过 Policy，否则 `account_required` / 策略拒绝。
 
-**Gateway↔SaaS 线网 type**（`proto/cloud/v1` → `cloudwire`，Gateway 透明转发）：除原有 register/heartbeat/command 外，新增 `capability`（板端能力列表，SaaS 内存存）、`event`（`name` + `payload_json`，如 `egress.unhealthy`、`account.session_dead` → 出口/ tier 侧效应）。
+**Gateway↔SaaS 线网 type**（`proto/cloud/v1` → saas `cloudwire` / gateway `common/cloud`，Gateway 透明转发）：除原有 register/heartbeat/command 外，新增 `capability`（板端能力列表，SaaS 内存存）、`event`（`name` + `payload_json`，如 `egress.unhealthy`、`account.session_dead` → 出口/ tier 侧效应）。
 
 指令为异步：HTTP 只受理，结果靠 WS（或轮询 commands API）。
 
